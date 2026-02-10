@@ -1,3 +1,5 @@
+# Pathfinder GM Toolkit - NPC and Encounter Generator Version 0.1
+import json
 import random
 
 #NPC Names - Add Homebrew names to list here
