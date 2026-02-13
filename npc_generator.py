@@ -2,193 +2,26 @@
 import json
 import random
 
-#NPC Names - Add Homebrew names to list here
-npc_names_first = [
-    "Aderic",
-    "Aelira",
-    "Althaea",
-    "Alvenor",
-    "Baelorin",
-    "Bramic",
-    "Brenya",
-    "Briselle",
-    "Caitha",
-    "Caldras",
-    "Coriel",
-    "Corven",
-    "Denvik",
-    "Delmira",
-    "Draelin",
-    "Draessa",
-    "Eldran",
-    "Elvira",
-    "Esmund",
-    "Evara",
-    "Faelith",
-    "Farnel",
-    "Feylin",
-    "Feyric",
-    "Gavreth",
-    "Grelia",
-    "Grendol",
-    "Grisane",
-    "Havren",
-    "Havessa",
-    "Hessia",
-    "Hollin",
-    "Ilyra",
-    "Irryne",
-    "Iscor",
-    "Ithrel",
-    "Jareth",
-    "Jaselle",
-    "Kaitha",
-    "Kaiven",
-    "Kavira",
-    "Kordain",
-    "Leneth",
-    "Lethric",
-    "Lirenne",
-    "Loric",
-    "Maelis",
-    "Mavren",
-    "Moriel",
-    "Morvain",
-    "Norric",
-    "Noreva",
-    "Nysara",
-    "Ordan",
-    "Orelia",
-    "Othira",
-    "Perrik",
-    "Prydan",
-    "Pryssa",
-    "Quellon",
-    "Quenra",
-    "Rastel",
-    "Rilith",
-    "Rhovic",
-    "Saedric",
-    "Saevia",
-    "Selnor",
-    "Sylvaine",
-    "Tavren",
-    "Tessara",
-    "Thavik",
-    "Thessra",
-    "Ulrican",
-    "Ulinne",
-    "Vaelith",
-    "Veylor",
-    "Vireya",
-    "Vornel",
-    "Warric",
-    "Weskan",
-    "Wesra",
-    "Xandrel",
-    "Xelira",
-    "Yavine",
-    "Yorven",
-    "Yssene",
-    "Zereth",
-    "Zethric",
-    "Zorrel",
-    "Zavira"
-] 
-npc_names_last = [
-    "Amberfall",
-    "Ashmere",
-    "Blackford",
-    "Briarholt",
-    "Coldwater",
-    "Crowhaven",
-    "Dawnridge",
-    "Deepwell",
-    "Duskwalker",
-    "Emberlane",
-    "Evenwood",
-    "Fallowmere",
-    "Farwind",
-    "Frostveil",
-    "Glenward",
-    "Graveholt",
-    "Greyharbor",
-    "Highmere",
-    "Ironroot",
-    "Keenriver",
-    "Larkspur",
-    "Lowfell",
-    "Marrowick",
-    "Mistvale",
-    "Moonreach",
-    "Netherby",
-    "Oakenshade",
-    "Palecrest",
-    "Quickwater",
-    "Ravenholt",
-    "Redmark",
-    "Rimewood",
-    "Saltmere",
-    "Shadowend",
-    "Silverfen",
-    "Stoneward",
-    "Stormmere",
-    "Swiftbrook",
-    "Thornfield",
-    "Truewatch",
-    "Umberlake",
-    "Valecrest",
-    "Westreach",
-    "Whitebriar",
-    "Windmere",
-    "Winterglen",
-    "Wyrdwell",
-    "Ashcroft",
-    "Blackmere",
-    "Brightwater",
-    "Cloudspire",
-    "Darkmere",
-    "Duskfen",
-    "Emberfall",
-    "Fairharbor",
-    "Frostmere",
-    "Goldleaf",
-    "Greyfen",
-    "Hollowmere",
-    "Ironfell",
-    "Longwatch",
-    "Mistbrook",
-    "Moonfen",
-    "Northmere",
-    "Oakfall",
-    "Pyrewatch",
-    "Ravenmere",
-    "Riverward",
-    "Shadowmere",
-    "Skylance",
-    "Stonefell",
-    "Stormwatch",
-    "Sunreach",
-    "Thornmere",
-    "Truefell",
-    "Valeward",
-    "Westmere",
-    "Whitefen",
-    "Wildmere",
-    "Windfall",
-    "Wintermere",
-    "Wolfsreach",
-    "Ashenford",
-    "Blackreach",
-    "Coldspire",
-    "Dawnwatch",
-    "Frostward",
-    "Greywatch",
-    "Ironmere",
-    "Moonward",
-    "Stormfell",
-    "Thornwatch"
-]
+def load_npc_names():
+    """
+    Loads NPC Name data from npc_names.json file
+
+    Returns:
+    Dictionary with race -> sex -> names structure
+    """
+    try:
+        with open('npc_names.json', 'r') as file:
+            names_data = json.load(file)
+            return names_data
+    except FileNotFoundError:
+        print("Error: npc_names.json file is not found!")
+        print("Make sure npc_names.json is in the same folder as npc_generator.py")
+        exit()
+    except json.JSONDecodeError as e:
+        print(f"Error: npc_names.json has invalid JSON syntax!")
+        print(f"Details: {e}")
+        exit()00
+
 # Occupations - Add Homebrew occupations to list here
 occupations = [
     "Blacksmith",
@@ -243,21 +76,7 @@ personality_traits = [
     "Sexist",
     "Racist"
 ]
-race = [
-    "Human",
-    "Elf",
-    "Dwarf",
-    "Halfling",
-    "Orc",
-    "Gnome",
-    "Shadrethim",
-    "Orvethari",
-    "Half-Elf",
-    "Half-Orc",
-    "Seramyri",
-    "Slyvadryl",
-    "Awakened Kin"    
-]
+
 
 #Monster Database - Each monster is a dictionary with stats
 monsters = [
@@ -323,24 +142,53 @@ terrain_types = [
     "road",
     "tundra"
 ]
+
+# Load NPC names for JSON file
+npc_names_data = load_npc_names()
+
 def generate_npc():
     """
     Generates a random NPC with name, occupation, and trait.
     Returns the NPC as a formatted string.
     """
 
-    #Pick one random item from each list
-    name = random.choice(npc_names_first) + " " + random.choice(npc_names_last)
+    # Pick a random race/subrace from available races
+    available_races = list(npc_names_data.keys())
+    race_key = random.choice(available_races)
+
+    # Pick a random sex
+    sex = random.choice(["male", "female"])
+
+    # Get appropriate first name based on race and sex
+    first_name = random.choice(npc_names_data[race_key][sex])
+
+    # Get surname from that race's surname list
+    surname = random.choice(npc_names_data[race_key]["surnames"])
+
+    # Combine first and last name
+    full_name = f"{first_name} {surname}"
+
+    # Get display name (or fall back to parsin race_key)
+    if "display_name" in npc_names_data[race_key]:
+        race_display = npc_names_data[race_key]["display_name"]
+    else:
+        # Fallback: parse race_key if no display_name provided
+         if "_" in race_key:
+            parts = race_key.split("_")
+            race_display = f"{parts[0].capitalize()} ({parts[1].capitalize()})"
+         else:
+            race_display = race_key.capitalize()
+    # Pick occupation and trait
     job = random.choice(occupations)
     personality = random.choice(personality_traits)
-    ancestry = random.choice(race)
-    #Build the Description String
-    #Then \n creates a new line for readability
+
+    # Build the description of the NPC
     npc_description = f"""
 NPC Generated:
 --------------
-Name: {name}
-Race: {ancestry}
+Name: {full_name}
+Race: {race_display}
+Sex: {sex.capitalize()}
 Occupation: {job}
 Personality: {personality}
 """
