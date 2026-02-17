@@ -1,0 +1,142 @@
+{
+  "terrain_definitions": {
+    "forest": {
+      "description": "Woods, jungles, groves, wilderness",
+      "creature_types": ["beast", "plant", "fey", "leshy", "sprite"],
+      "special_traits": ["arboreal", "wood"],
+      "exclude_traits": ["aquatic", "undead", "fiend"]
+    },
+    "urban": {
+      "description": "Cities, towns, settlements, roads",
+      "creature_types": ["humanoid"],
+      "special_traits": [],
+      "specific_ancestries": ["human", "elf", "dwarf", "gnome", "halfling", "goblin", "orc", "kobold", "ratfolk", "catfolk", "tengu", "leshy"],
+      "exclude_traits": ["mindless", "beast", "ooze"]
+    },
+    "underground": {
+      "description": "Dungeons, caves, the Darklands, underdark",
+      "creature_types": ["aberration", "ooze"],
+      "special_traits": [],
+      "specific_ancestries": ["drow", "duergar", "dero", "morlock", "hryngar", "xulgath", "girtablilu"],
+      "exclude_traits": ["aquatic"]
+    },
+    "aquatic": {
+      "description": "Oceans, seas, deep water",
+      "creature_types": ["beast"],
+      "special_traits": ["aquatic", "water"],
+      "specific_ancestries": ["locathah", "sea-devil", "merfolk", "azarketi"],
+      "exclude_traits": ["fire"]
+    },
+    "coastal": {
+      "description": "Beaches, shores, tidal areas, swamps",
+      "creature_types": ["beast"],
+      "special_traits": ["amphibious", "water"],
+      "specific_ancestries": ["boggard", "grippli"],
+      "exclude_traits": []
+    },
+    "mountains": {
+      "description": "Mountains, peaks, highlands, cliffs",
+      "creature_types": ["dragon", "giant"],
+      "special_traits": ["air"],
+      "specific_ancestries": ["oread", "harpy", "gargoyle"],
+      "exclude_traits": ["aquatic"]
+    },
+    "desert": {
+      "description": "Deserts, wastelands, arid regions",
+      "creature_types": ["beast"],
+      "special_traits": ["fire"],
+      "specific_ancestries": ["mummy", "sphinx", "genie"],
+      "exclude_traits": ["aquatic", "water", "cold"]
+    },
+    "arctic": {
+      "description": "Tundra, ice fields, frozen wastes",
+      "creature_types": ["beast"],
+      "special_traits": ["cold"],
+      "specific_ancestries": [],
+      "exclude_traits": ["fire"]
+    },
+    "planar_air": {
+      "description": "Plane of Air, sky realms",
+      "creature_types": ["elemental"],
+      "special_traits": ["air"],
+      "specific_ancestries": ["sylph"],
+      "exclude_traits": []
+    },
+    "planar_earth": {
+      "description": "Plane of Earth, underground planes",
+      "creature_types": ["elemental"],
+      "special_traits": ["earth"],
+      "specific_ancestries": ["oread"],
+      "exclude_traits": []
+    },
+    "planar_fire": {
+      "description": "Plane of Fire, volcanic regions",
+      "creature_types": ["elemental"],
+      "special_traits": ["fire"],
+      "specific_ancestries": ["efreeti", "ifrit"],
+      "exclude_traits": []
+    },
+    "planar_water": {
+      "description": "Plane of Water, elemental seas",
+      "creature_types": ["elemental"],
+      "special_traits": ["water"],
+      "specific_ancestries": ["undine"],
+      "exclude_traits": []
+    },
+    "graveyard": {
+      "description": "Graveyards, crypts, tombs, ruins",
+      "creature_types": ["undead"],
+      "special_traits": ["ghost", "ghoul", "skeleton", "zombie", "mummy", "vampire", "wight", "wraith", "graveknight"],
+      "exclude_traits": []
+    },
+    "astral": {
+      "description": "Astral Plane, between-spaces",
+      "creature_types": ["astral"],
+      "special_traits": ["incorporeal", "phantom"],
+      "exclude_traits": []
+    },
+    "ethereal": {
+      "description": "Ethereal Plane, spirit realm",
+      "creature_types": ["ethereal"],
+      "special_traits": ["incorporeal", "spirit", "ghost"],
+      "exclude_traits": []
+    },
+    "hell": {
+      "description": "Hell, infernal planes",
+      "creature_types": ["fiend", "devil"],
+      "special_traits": ["unholy", "evil", "lawful"],
+      "exclude_traits": ["holy", "good"]
+    },
+    "abyss": {
+      "description": "The Abyss, chaotic evil planes",
+      "creature_types": ["fiend", "demon"],
+      "special_traits": ["unholy", "evil", "chaotic"],
+      "exclude_traits": ["holy", "good", "lawful"]
+    },
+    "heaven": {
+      "description": "Heaven, celestial planes",
+      "creature_types": ["celestial", "angel", "archon", "azata"],
+      "special_traits": ["holy", "good"],
+      "exclude_traits": ["unholy", "evil"]
+    },
+    "shadow": {
+      "description": "Shadow Plane, Netherworld",
+      "creature_types": ["shadow"],
+      "special_traits": ["fetchling", "shade", "nightmare"],
+      "exclude_traits": ["light"]
+    },
+    "first_world": {
+      "description": "First World, realm of the fey",
+      "creature_types": ["fey"],
+      "special_traits": ["plant"],
+      "specific_ancestries": ["gnome", "nymph", "sprite", "gremlin"],
+      "exclude_traits": []
+    },
+    "any": {
+      "description": "Can appear anywhere (use for flexible encounters)",
+      "creature_types": ["construct", "golem", "clockwork", "automaton"],
+      "special_traits": ["mindless"],
+      "exclude_traits": []
+    }
+  }
+}
