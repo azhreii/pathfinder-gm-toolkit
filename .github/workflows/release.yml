@@ -13,26 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: foundry-module/pf2e-gm-toolkit/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: foundry-module/pf2e-gm-toolkit
-
-      - name: Build module
-        run: npm run build
-        working-directory: foundry-module/pf2e-gm-toolkit
+      # Build step is omitted until the src→dist migration is complete.
+      # When module.json is updated to load dist/pf2e-gm-toolkit.bundle.js,
+      # re-add: setup-node, npm ci, npm run build — and switch the ZIP to dist/.
 
       - name: Create release ZIP
         run: |
           cd foundry-module/pf2e-gm-toolkit
           mkdir -p release-staging
-          cp -r dist templates styles data module.json release-staging/
+          # scripts/ is included because module.json currently loads from scripts/.
+          # When the src→dist migration lands, remove scripts/ and module.json
+          # will be updated to load dist/pf2e-gm-toolkit.bundle.js instead.
+          cp -r scripts templates styles data module.json release-staging/
           cd release-staging
           zip -r ../../../pf2e-gm-toolkit.zip .
         shell: bash
