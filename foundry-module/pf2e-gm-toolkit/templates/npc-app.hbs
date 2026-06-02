@@ -8,13 +8,25 @@
         <div class="gmt-field gmt-checkbox">
           <label>
             <input type="checkbox" name="useAI" checked>
-            AI-Enhanced (Gemini) — appearance, motivation, secret, quote
+            AI-Enhanced — appearance, motivation, secret, quote
           </label>
         </div>
       {{else}}
-        <p class="gmt-hint">Add a Gemini API key in Module Settings to enable AI-enhanced NPCs.</p>
+        <p class="gmt-hint">Configure an AI provider in Module Settings to enable AI-enhanced NPCs.</p>
         <p class="gmt-hint">Basic mode: random name, race, occupation, personality trait.</p>
       {{/if}}
+
+      {{!-- Creature level for archetype matching. Shows (auto-detected) when
+            the value is coming from the party rather than a manual override. --}}
+      <div class="gmt-field gmt-row" style="align-items:center; gap:0.5rem; margin-top:0.35rem;">
+        <label style="font-size:var(--font-size-12); font-weight:500; color:var(--color-text-secondary); white-space:nowrap;">
+          Creature Level
+          {{#if usingDetected}}<span class="gmt-detected">(auto-detected)</span>{{/if}}
+        </label>
+        <input type="number" name="creatureLevel" min="1" max="20"
+               value="{{effectiveLevel}}"
+               style="width:60px; height:26px; padding:0 0.3rem;">
+      </div>
     </section>
 
     <div class="gmt-actions">
@@ -73,6 +85,64 @@
       </button>
       <button type="button" data-action="clearResult" class="gmt-secondary">
         <i class="fas fa-times"></i> Clear
+      </button>
+    </div>
+  </section>
+
+  {{!-- ---- Archetype picker — optional stat block base ---- --}}
+  <section class="gmt-section gmt-archetype-section">
+    <h3 class="gmt-section-title">Archetype (Optional)</h3>
+    <p class="gmt-hint">Select a compendium NPC as the mechanical base. Without one, the actor will have no combat stats.</p>
+
+    {{#if selectedArchetype}}
+      {{!-- Show the confirmed selection and offer a clear button. --}}
+      <div class="gmt-selected-archetype">
+        <span><i class="fas fa-check-circle"></i> {{selectedArchetype.name}}</span>
+        <button type="button" data-action="clearArchetype" class="gmt-secondary">
+          <i class="fas fa-times"></i> Clear
+        </button>
+      </div>
+    {{else}}
+      {{!-- No selection yet — show the browse/hide toggle. --}}
+      <button type="button" data-action="toggleArchetypePicker">
+        <i class="fas fa-search"></i>
+        {{#if showArchetypePicker}}Hide Picker{{else}}Browse Archetypes{{/if}}
+      </button>
+    {{/if}}
+
+    {{#if showArchetypePicker}}
+    <div class="gmt-archetype-picker">
+      <div class="gmt-archetype-filters">
+        <select name="archetypeCategory">
+          {{#each archetypeCategories}}
+            <option value="{{this}}"
+              {{#if (eq this ../archetypeCategory)}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+        <button type="button" data-action="applyArchetypeFilter">Filter</button>
+        <span class="gmt-hint">{{archetypes.length}} shown (level ~{{effectiveLevel}})</span>
+      </div>
+
+      <div class="gmt-archetype-list">
+        {{#each archetypes}}
+        <button type="button" class="gmt-archetype-entry" data-action="selectArchetype"
+          data-pack-id="{{packId}}" data-actor-id="{{actorId}}" data-name="{{name}}">
+          <span class="gmt-arch-name">{{name}}</span>
+          <span class="gmt-arch-meta">Lvl {{level}} · {{category}}</span>
+        </button>
+        {{else}}
+        <p class="gmt-hint" style="padding:0.5rem;">
+          No archetypes found at this level. Try adjusting the level or category.
+        </p>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <div class="gmt-result-actions">
+      <button type="button" data-action="createActor">
+        <i class="fas fa-user-plus"></i>
+        {{#if selectedArchetype}}Create Actor (with archetype){{else}}Create Actor (no stats){{/if}}
       </button>
     </div>
   </section>

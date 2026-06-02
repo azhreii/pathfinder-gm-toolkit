@@ -194,3 +194,158 @@ GMTOOLKIT.loadModuleData = async function () {
   ]);
   return { terrainMapping, npcNames };
 };
+
+/**
+ * Read party level and size from active player characters.
+ * Returns { partyLevel, partySize } — either or both may be null if
+ * no characters are connected.
+ * Safe to call before the "ready" hook fires (returns null fields on any error).
+ */
+GMTOOLKIT.detectParty = function () {
+  try {
+    const chars = game.users
+      .filter((u) => u.active && !u.isGM && u.character)
+      .map((u) => u.character);
+    const partySize = chars.length || null;
+    const partyLevel =
+      partySize > 0
+        ? Math.round(
+            chars.reduce(
+              (sum, a) => sum + (a.system?.details?.level?.value ?? 1),
+              0
+            ) / partySize
+          )
+        : null;
+    return { partyLevel, partySize };
+  } catch {
+    /* game.users may not be available this early — return nulls rather than throw. */
+    return { partyLevel: null, partySize: null };
+  }
+};
+
+/**
+ * Read terrain tag from the active scene (set by this module).
+ * Returns terrain key string or null.
+ * Safe to call before the "ready" hook fires (returns null on any error).
+ */
+GMTOOLKIT.detectSceneTerrain = function () {
+  try {
+    return canvas?.scene?.getFlag("pf2e-gm-toolkit", "terrain") ?? null;
+  } catch {
+    /* canvas may not be initialised yet — return null rather than throw. */
+    return null;
+  }
+};
+
+/**
+ * Place tokens on the active scene from a summarised creature list.
+ * Hidden from players by default. Returns array of created token IDs.
+ * Individual creatures with missing packId or actorId are skipped gracefully.
+ *
+ * @param {Array}  summary   from GMTOOLKIT.summariseCreatures() — each entry
+ *                           must have: name, count, packId, actorId
+ * @param {object} options   { hidden: bool, addToCombat: bool }
+ * @returns {Promise<string[]>}
+ */
+GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
+  /* Default option values — avoid destructuring default object in plain-script context. */
+  var hidden = (options && options.hidden !== undefined) ? options.hidden : true;
+  var addToCombat = (options && options.addToCombat !== undefined) ? options.addToCombat : false;
+
+  var scene = canvas?.scene;
+  if (!scene) {
+    ui.notifications.warn("PF2e GM Toolkit | No active scene — cannot place tokens.");
+    return [];
+  }
+
+  var dims = scene.dimensions ?? {};
+  var gridSize = scene.grid?.size ?? 100;
+  var centerX = (dims.width ?? 2000) / 2;
+  var centerY = (dims.height ?? 2000) / 2;
+
+  var tokenDataArray = [];
+  var slot = 0;
+
+  for (var ci = 0; ci < summary.length; ci++) {
+    var creature = summary[ci];
+
+    /* Skip entries that cannot be resolved to a compendium document. */
+    if (!creature.packId || !creature.actorId) {
+      console.warn("PF2e GM Toolkit | Skipping " + creature.name + " — missing packId or actorId.");
+      continue;
+    }
+
+    var pack = game.packs.get(creature.packId);
+    if (!pack) {
+      console.warn("PF2e GM Toolkit | Pack not found: " + creature.packId);
+      continue;
+    }
+
+    var actorDoc;
+    try {
+      actorDoc = await pack.getDocument(creature.actorId);
+    } catch (err) {
+      console.warn("PF2e GM Toolkit | Could not load " + creature.name + ":", err);
+      continue;
+    }
+    if (!actorDoc) continue;
+
+    var proto = actorDoc.prototypeToken.toObject();
+    var count = creature.count ?? 1;
+
+    for (var i = 0; i < count; i++) {
+      /* Spiral placement outward from scene centre so tokens don't stack. */
+      var angle = slot * (Math.PI * 2) / 8;
+      var ring = Math.floor(slot / 8) + 1;
+      var x =
+        Math.round((centerX + Math.cos(angle) * gridSize * ring) / gridSize) *
+        gridSize;
+      var y =
+        Math.round((centerY + Math.sin(angle) * gridSize * ring) / gridSize) *
+        gridSize;
+
+      tokenDataArray.push(
+        foundry.utils.mergeObject(proto, {
+          x: x,
+          y: y,
+          hidden: hidden,
+          actorLink: false,
+          /* delta carries the name override for unlinked tokens in Foundry v13 */
+          delta: { name: creature.name },
+        }, { inplace: false })
+      );
+      slot++;
+    }
+  }
+
+  if (tokenDataArray.length === 0) return [];
+
+  var created = await scene.createEmbeddedDocuments("Token", tokenDataArray);
+  var ids = created.map(function (t) { return t.id; });
+
+  if (addToCombat && ids.length > 0) {
+    await GMTOOLKIT._addTokensToCombat(ids, scene);
+  }
+
+  return ids;
+};
+
+/**
+ * Internal helper: add token IDs to the active combat tracker, creating one if needed.
+ * @param {string[]} tokenIds
+ * @param {Scene}    scene
+ */
+GMTOOLKIT._addTokensToCombat = async function (tokenIds, scene) {
+  try {
+    var combat = game.combats.active;
+    if (!combat) {
+      combat = await Combat.create({ scene: scene.id, active: true });
+    }
+    var combatants = tokenIds.map(function (id) {
+      return { tokenId: id, sceneId: scene.id };
+    });
+    await combat.createEmbeddedDocuments("Combatant", combatants);
+  } catch (err) {
+    console.error("PF2e GM Toolkit | Failed to add tokens to combat:", err);
+  }
+};

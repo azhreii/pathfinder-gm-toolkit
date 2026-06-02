@@ -13,9 +13,11 @@ class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
     },
     position: { width: 680, height: "auto" },
     actions: {
-      generate: EncounterBuilderApp._onGenerate,
+      generate:    EncounterBuilderApp._onGenerate,
       saveJournal: EncounterBuilderApp._onSaveJournal,
       clearResult: EncounterBuilderApp._onClearResult,
+      placeTokens: EncounterBuilderApp._onPlaceTokens,
+      openSheet:   EncounterBuilderApp._onOpenSheet,
     },
   };
 
@@ -53,6 +55,12 @@ class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
       label: GMTOOLKIT.DIFFICULTY_LABELS[d] ?? d,
     }));
 
+    /* Detect live party state and scene context.
+       Both helpers return null fields safely if called before "ready". */
+    const party = GMTOOLKIT.detectParty?.() ?? { partyLevel: null, partySize: null };
+    const sceneTerrain = GMTOOLKIT.detectSceneTerrain?.() ?? null;
+    const hasActiveScene = !!canvas?.scene;
+
     return {
       terrainOptions,
       templateOptions,
@@ -64,6 +72,11 @@ class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
       isGenerating: this._isGenerating,
       hasResult: !!this._lastEncounter,
       hasGeminiKey: !!GMTOOLKIT.getGeminiKey(),
+      /* Live-detected values pre-populate the form when available. */
+      detectedPartyLevel: party.partyLevel,
+      detectedPartySize: party.partySize,
+      detectedTerrain: sceneTerrain,
+      hasActiveScene,
     };
   }
 
@@ -98,8 +111,11 @@ class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
 
     const form = app.element.querySelector("form");
     const data = new FormData(form);
-    const partyLevel = parseInt(data.get("partyLevel"), 10);
-    const partySize = parseInt(data.get("partySize"), 10);
+    /* Fall back to live-detected values when the form fields are blank or zero.
+       Final fallback to sensible defaults so generation never NaNs. */
+    const party = GMTOOLKIT.detectParty?.() ?? {};
+    const partyLevel = (parseInt(data.get("partyLevel"), 10) || party.partyLevel) ?? 5;
+    const partySize  = (parseInt(data.get("partySize"),  10) || party.partySize)  ?? 4;
     const terrain = data.get("terrain");
     const genMode = data.get("genMode");
     const templateKey = data.get("templateKey");
@@ -162,5 +178,47 @@ class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
     app._lastEncounter = null;
     app._lastSummary = null;
     await app.render({ force: true });
+  }
+
+  /**
+   * Place tokens for the last generated encounter on the active scene.
+   * Reads the hidden/addToCombat checkboxes from the form.
+   */
+  static async _onPlaceTokens(event, target) {
+    const app = this;
+    /* Nothing to place if no encounter has been generated yet. */
+    if (!app._lastSummary?.length) return;
+
+    const form = app.element.querySelector("form");
+    const hidden      = form?.querySelector("[name='tokensHidden']")?.checked ?? true;
+    const addToCombat = form?.querySelector("[name='addToCombat']")?.checked ?? false;
+
+    try {
+      const ids = await GMTOOLKIT.placeEncounterTokens(app._lastSummary, { hidden, addToCombat });
+      if (ids.length > 0) {
+        ui.notifications.info(`PF2e GM Toolkit | Placed ${ids.length} token(s) on the scene.`);
+      }
+    } catch (err) {
+      console.error("PF2e GM Toolkit | Token placement failed:", err);
+      ui.notifications.error("Failed to place tokens. Check the browser console.");
+    }
+  }
+
+  /**
+   * Open the compendium sheet for a creature row in the result table.
+   * Requires data-pack-id and data-actor-id attributes on the clicked element.
+   */
+  static async _onOpenSheet(event, target) {
+    const packId  = target.dataset.packId;
+    const actorId = target.dataset.actorId;
+    /* Guard: both attributes must be present or there is nothing to open. */
+    if (!packId || !actorId) return;
+    try {
+      const pack = game.packs.get(packId);
+      const doc  = await pack?.getDocument(actorId);
+      doc?.sheet?.render(true);
+    } catch (err) {
+      console.warn("PF2e GM Toolkit | Could not open compendium sheet:", err);
+    }
   }
 }

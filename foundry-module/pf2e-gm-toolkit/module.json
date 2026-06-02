@@ -19,6 +19,7 @@
     "scripts/npc-logic.js",
     "scripts/ai-tools.js",
     "scripts/storage.js",
+    "scripts/actor-creator.js",
     "scripts/encounter-app.js",
     "scripts/npc-app.js",
     "scripts/main.js"

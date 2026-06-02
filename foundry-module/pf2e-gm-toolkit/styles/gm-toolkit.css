@@ -277,3 +277,111 @@
   margin: 0;
   line-height: 1.4;
 }
+
+/* ---- Auto-detected field labels ---- */
+.gmt-detected {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---- Token placement controls (shown above result actions) ---- */
+.gmt-placement-controls {
+  display: flex;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--color-border-light-tertiary);
+  margin-top: 0.5rem;
+}
+
+/* ---- Compendium link button in creature table ---- */
+.gmt-link-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-hyperlink);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-align: left;
+}
+
+.gmt-link-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* ---- Archetype picker ---- */
+.gmt-archetype-section {
+  margin-top: 0.5rem;
+}
+
+.gmt-selected-archetype {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  font-size: var(--font-size-13);
+  margin-bottom: 0.4rem;
+}
+
+.gmt-archetype-picker {
+  margin-top: 0.5rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gmt-archetype-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-bg-header);
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.gmt-archetype-filters select {
+  flex: 1;
+  height: 26px;
+  font-size: var(--font-size-12);
+}
+
+.gmt-archetype-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.gmt-archetype-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  text-align: left;
+}
+
+.gmt-archetype-entry:hover {
+  background: var(--color-bg-option);
+}
+
+.gmt-archetype-entry:last-child {
+  border-bottom: none;
+}
+
+.gmt-arch-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.gmt-arch-meta {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+}

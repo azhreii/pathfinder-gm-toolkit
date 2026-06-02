@@ -277,5 +277,9 @@ GMTOOLKIT.summariseCreatures = function (creatures, partyLevel) {
     ac: monster.ac,
     xpEach: GMTOOLKIT.getCreatureXP(monster.level, partyLevel),
     remaster: monster.remaster ?? false,
+    /* Pass compendium identifiers through so the template can link to sheets
+       and placeEncounterTokens can fetch the full actor document. */
+    packId: monster.packId ?? "",
+    actorId: monster._id ?? "",
   }));
 };

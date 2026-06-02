@@ -89,3 +89,31 @@ GMTOOLKIT.ENCOUNTER_TEMPLATES = {
   troop:                   "Troop (Moderate, 80 XP)",
   mook_squad:              "Mook Squad (Low, 60 XP)",
 };
+
+/* ------------------------------------------------------------------ */
+/* LLM / AI provider constants                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Display labels for each supported AI provider.
+ * Keyed by the value stored in the llmProvider setting.
+ */
+GMTOOLKIT.LLM_PROVIDERS = {
+  gemini:             "Google Gemini",
+  openai:             "OpenAI",
+  mistral:            "Mistral",
+  "openai-compatible": "Custom (OpenAI-compatible)",
+};
+
+/**
+ * Default model name for each provider.
+ * Used when the llmModel setting is left blank.
+ * openai-compatible has no sensible universal default, so it stays empty
+ * and the user is expected to supply a value in the Model field.
+ */
+GMTOOLKIT.DEFAULT_MODELS = {
+  gemini:             "gemini-2.0-flash",
+  openai:             "gpt-4o",
+  mistral:            "mistral-large-latest",
+  "openai-compatible": "",
+};
