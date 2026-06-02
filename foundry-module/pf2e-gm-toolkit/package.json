@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node build.mjs",
     "dev": "node build.mjs --dev --watch",
-    "build:validate": "node build.mjs --validate-only"
+    "build:validate": "node build.mjs --validate-only",
+    "test:ui-surface": "node tests/validate-ui-surface.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

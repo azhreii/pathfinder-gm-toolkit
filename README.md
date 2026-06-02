@@ -71,7 +71,7 @@ Paste the manifest URL into Foundry's **Install Module** dialog → **Install**.
 
 1. Enable the module in your world's **Module Management**
 2. Open **Module Settings → PF2e GM Toolkit** to configure your AI provider (optional)
-3. The **Encounters** and **NPCs** buttons appear at the top of your Journal sidebar (GM only)
+3. The **GM Toolkit sidebar tab** appears in Foundry's right sidebar (GM only)
 
 ### AI Configuration
 
@@ -86,14 +86,14 @@ If you leave the provider set to Disabled, all generation works without AI — n
 ### Generating an Encounter
 
 1. Open a scene with your players connected
-2. Click **Encounters** in the Journal sidebar
+2. Open the **GM Toolkit sidebar tab** and click **Encounter Builder**
 3. Party level and size are auto-detected — adjust if needed
 4. Select terrain, generation mode, and hit **Generate Encounter**
 5. Review the creature list, then click **Place Tokens** — tokens appear on the canvas, hidden from players
 
 ### Generating an NPC
 
-1. Click **NPCs** in the Journal sidebar
+1. Open the **GM Toolkit sidebar tab** and click **NPC Generator**
 2. Hit **Generate NPC**
 3. Optionally browse the **Archetype** picker to give the NPC a real stat block base
 4. Click **Create Actor** — the actor appears in your world and opens for review

@@ -22,6 +22,7 @@
     "scripts/actor-creator.js",
     "scripts/encounter-app.js",
     "scripts/npc-app.js",
+    "scripts/toolkit-sidebar-tab.js",
     "scripts/main.js"
   ],
   "styles": [

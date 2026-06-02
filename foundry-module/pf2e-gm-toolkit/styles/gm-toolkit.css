@@ -2,30 +2,83 @@
    PF2e GM Toolkit — Foundry v13 styles
    ============================================================= */
 
-/* ---- Journal sidebar buttons ---- */
-.gmt-sidebar-buttons {
+/* ---- Dedicated sidebar tab ---- */
+.gmt-toolkit-sidebar-body {
   display: flex;
-  gap: 4px;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--color-border-light-primary);
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.5rem;
+  font-family: var(--font-primary);
+  font-size: var(--font-size-13);
+  color: var(--color-text-primary);
 }
 
-.gmt-sidebar-btn {
-  flex: 1;
+.gmt-toolkit-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.gmt-status-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.5rem;
+  gap: 0.25rem;
+  min-height: 22px;
+  padding: 0.12rem 0.42rem;
   border: 1px solid var(--color-border-light-primary);
-  border-radius: 3px;
+  border-radius: 4px;
+  background: var(--color-bg-option);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-11);
+  line-height: 1;
+}
+
+.gmt-status-pill.ready {
+  border-color: #6fa06f;
+  color: #2f6f2f;
+}
+
+.gmt-status-pill.loading {
+  color: var(--color-text-muted);
+}
+
+.gmt-status-pill.muted {
+  opacity: 0.75;
+}
+
+.gmt-toolkit-launch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.gmt-toolkit-launch {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
   background: var(--color-bg-button);
   color: var(--color-text-primary);
-  font-size: var(--font-size-12);
+  font-size: var(--font-size-13);
+  text-align: left;
   cursor: pointer;
 }
 
-.gmt-sidebar-btn:hover {
+.gmt-toolkit-launch i {
+  justify-self: center;
+  color: var(--color-text-secondary);
+}
+
+.gmt-toolkit-launch span {
+  overflow-wrap: anywhere;
+}
+
+.gmt-toolkit-launch:hover {
   background: var(--color-bg-button-hover);
 }
 

@@ -1,0 +1,30 @@
+<div class="gmt-toolkit-sidebar-body">
+  <div class="gmt-toolkit-status" aria-live="polite">
+    <span class="gmt-status-pill {{#if dataReady}}ready{{else}}loading{{/if}}">
+      <i class="fas {{#if dataReady}}fa-check-circle{{else}}fa-spinner fa-spin{{/if}}"></i>
+      {{#if dataReady}}{{monsterCount}} Creatures{{else}}Indexing{{/if}}
+    </span>
+
+    <span class="gmt-status-pill {{#if archetypeReady}}ready{{else}}loading{{/if}}">
+      <i class="fas {{#if archetypeReady}}fa-check-circle{{else}}fa-spinner fa-spin{{/if}}"></i>
+      {{#if archetypeReady}}{{archetypeCount}} Archetypes{{else}}Archetypes{{/if}}
+    </span>
+
+    <span class="gmt-status-pill {{#if aiEnabled}}ready{{else}}muted{{/if}}">
+      <i class="fas fa-magic"></i>
+      {{#if aiEnabled}}AI On{{else}}AI Off{{/if}}
+    </span>
+  </div>
+
+  <div class="gmt-toolkit-launch-list">
+    <button type="button" class="gmt-toolkit-launch" data-action="openEncounter">
+      <i class="fas fa-swords"></i>
+      <span>Encounter Builder</span>
+    </button>
+
+    <button type="button" class="gmt-toolkit-launch" data-action="openNPC">
+      <i class="fas fa-user-secret"></i>
+      <span>NPC Generator</span>
+    </button>
+  </div>
+</div>
