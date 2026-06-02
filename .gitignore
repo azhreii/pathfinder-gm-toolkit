@@ -12,6 +12,7 @@ __pycache__/
 Thumbs.db
 
 # Personal notes
+docs/
 notes.txt
 npcs.json
 
