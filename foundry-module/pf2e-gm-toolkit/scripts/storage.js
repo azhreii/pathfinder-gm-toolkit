@@ -312,10 +312,15 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
       continue;
     }
 
-    /* Check for a previously imported world actor so we never duplicate. */
+    /* Check for a previously imported world actor so we never duplicate.
+       We track imports under our own flag namespace — NOT flags.core.sourceId,
+       which is deprecated in Foundry v13 and fires a warning for every actor
+       in the world when accessed via getFlag().
+       Direct property access (no getFlag call) avoids the warning entirely. */
     var sourceId = "Compendium." + pack.collection + ".Actor." + creature.actorId;
     var worldActor = game.actors.find(function (a) {
-      return a.getFlag("core", "sourceId") === sourceId;
+      return a.flags && a.flags["pf2e-gm-toolkit"] &&
+             a.flags["pf2e-gm-toolkit"].sourceId === sourceId;
     });
 
     if (!worldActor) {
@@ -329,13 +334,16 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
       if (!actorDoc) continue;
 
       try {
-        var actorData  = actorDoc.toObject();
-        actorData._id  = undefined;   // let Foundry assign a new world ID
+        /* fromCompendium() is the canonical way to prepare compendium data for
+           world use — it resolves token image paths, strips entry metadata, and
+           handles system-specific field transformations (e.g. PF2e token art). */
+        var actorData = game.actors.fromCompendium(actorDoc);
         actorData.folder = encounterFolder.id;
-        /* Embed sourceId at creation time so future runs can find this actor. */
-        actorData.flags           = actorData.flags           || {};
-        actorData.flags.core      = actorData.flags.core      || {};
-        actorData.flags.core.sourceId = sourceId;
+        /* Store our own source-tracking flag so the lookup above can find this
+           actor on subsequent placements without touching core.sourceId. */
+        actorData.flags = actorData.flags || {};
+        actorData.flags["pf2e-gm-toolkit"] = actorData.flags["pf2e-gm-toolkit"] || {};
+        actorData.flags["pf2e-gm-toolkit"].sourceId = sourceId;
         worldActor = await Actor.create(actorData, { renderSheet: false });
       } catch (err) {
         console.warn("PF2e GM Toolkit | Could not import " + creature.name + ":", err);
@@ -386,14 +394,31 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
  */
 GMTOOLKIT._addTokensToCombat = async function (tokenIds, scene) {
   try {
-    var combat = game.combats.active;
+    /* Prefer the active encounter, then any encounter already on this scene,
+       then create a fresh one.  getDocumentClass("Combat") returns PF2e's
+       EncounterPF2e subclass when the PF2e system is loaded, which is required
+       for the combat tracker to display correctly. */
+    var combat = game.combats.active
+      || game.combats.find(function (c) { return c.scene && c.scene.id === scene.id; });
+
     if (!combat) {
-      combat = await Combat.create({ scene: scene.id, active: true });
+      combat = await getDocumentClass("Combat").create({ scene: scene.id });
     }
-    var combatants = tokenIds.map(function (id) {
-      return { tokenId: id, sceneId: scene.id };
-    });
-    await combat.createEmbeddedDocuments("Combatant", combatants);
+
+    /* Build combatant entries.  PF2e's tracker needs actorId as well as tokenId
+       to correctly resolve HP, initiative, and other actor-derived fields. */
+    var combatants = [];
+    for (var i = 0; i < tokenIds.length; i++) {
+      var token = scene.tokens.get(tokenIds[i]);
+      if (!token) continue;
+      var entry = { tokenId: tokenIds[i], sceneId: scene.id };
+      if (token.actorId) entry.actorId = token.actorId;
+      combatants.push(entry);
+    }
+
+    if (combatants.length > 0) {
+      await combat.createEmbeddedDocuments("Combatant", combatants);
+    }
   } catch (err) {
     console.error("PF2e GM Toolkit | Failed to add tokens to combat:", err);
   }

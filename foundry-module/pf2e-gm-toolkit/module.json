@@ -2,7 +2,7 @@
   "id": "pf2e-gm-toolkit",
   "title": "Pathfinder GM Toolkit",
   "description": "Encounter builder and NPC generator for Pathfinder 2e. Reads creatures directly from your installed Foundry compendium packs (no bundled monster data — it uses whatever bestiary books you have). Generates terrain-filtered encounters using official XP budget rules, creates richly detailed NPCs, and optionally enhances both with AI narrative via Google Gemini.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "authors": [
     {
       "name": "Tod Moses II",

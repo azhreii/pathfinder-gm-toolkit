@@ -202,7 +202,10 @@ async function _callGemini(prompt, apiKey, model) {
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.8, maxOutputTokens: 1024 },
+    /* 2048 tokens gives the encounter prompt (5 multi-sentence fields) room to
+       complete without truncation.  1024 was too small and caused JSON parse
+       failures on longer responses ("Unterminated string" errors). */
+    generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
   };
 
   const response = await fetch(url, {
