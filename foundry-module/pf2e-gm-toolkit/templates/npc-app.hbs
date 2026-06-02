@@ -1,0 +1,80 @@
+<div class="gmt-app-body">
+  <form class="gmt-form">
+
+    <section class="gmt-section">
+      <h3 class="gmt-section-title">Options</h3>
+
+      {{#if hasGeminiKey}}
+        <div class="gmt-field gmt-checkbox">
+          <label>
+            <input type="checkbox" name="useAI" checked>
+            AI-Enhanced (Gemini) — appearance, motivation, secret, quote
+          </label>
+        </div>
+      {{else}}
+        <p class="gmt-hint">Add a Gemini API key in Module Settings to enable AI-enhanced NPCs.</p>
+        <p class="gmt-hint">Basic mode: random name, race, occupation, personality trait.</p>
+      {{/if}}
+    </section>
+
+    <div class="gmt-actions">
+      <button type="button" data-action="generate" {{#if isGenerating}}disabled{{/if}}>
+        {{#if isGenerating}}
+          <i class="fas fa-spinner fa-spin"></i> Generating…
+        {{else}}
+          <i class="fas fa-user-plus"></i> Generate NPC
+        {{/if}}
+      </button>
+    </div>
+  </form>
+
+  {{#if hasResult}}
+  <section class="gmt-result">
+    <div class="gmt-npc-header">
+      <h3>{{npc.name}}</h3>
+      <div class="gmt-result-meta">
+        <span>{{npc.race}}</span>
+        <span>{{npc.sex}}</span>
+        {{#if npc.aiEnhanced}}<span class="gmt-badge gmt-ai-badge">AI Enhanced</span>{{/if}}
+      </div>
+    </div>
+
+    <dl class="gmt-npc-details">
+      <dt>Occupation</dt>
+      <dd>{{npc.occupation}}</dd>
+
+      <dt>Personality</dt>
+      <dd>{{npc.personality}}</dd>
+
+      {{#if npc.appearance}}
+        <dt>Appearance</dt>
+        <dd>{{npc.appearance}}</dd>
+      {{/if}}
+
+      {{#if npc.motivation}}
+        <dt>Motivation</dt>
+        <dd>{{npc.motivation}}</dd>
+      {{/if}}
+
+      {{#if npc.secret}}
+        <dt>Secret</dt>
+        <dd>{{npc.secret}}</dd>
+      {{/if}}
+
+      {{#if npc.quote}}
+        <dt>Quote</dt>
+        <dd><em>"{{npc.quote}}"</em></dd>
+      {{/if}}
+    </dl>
+
+    <div class="gmt-result-actions">
+      <button type="button" data-action="saveJournal">
+        <i class="fas fa-book"></i> Save to Journal
+      </button>
+      <button type="button" data-action="clearResult" class="gmt-secondary">
+        <i class="fas fa-times"></i> Clear
+      </button>
+    </div>
+  </section>
+  {{/if}}
+</div>

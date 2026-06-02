@@ -14,3 +14,9 @@ Thumbs.db
 # Personal notes
 notes.txt
 npcs.json
+
+# Local secrets and generated data
+.env
+*.db
+*.sqlite
+*.sqlite3

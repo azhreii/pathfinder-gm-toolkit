@@ -1,0 +1,155 @@
+<div class="gmt-app-body">
+  <form class="gmt-form">
+
+    {{!-- ===== Encounter Parameters ===== --}}
+    <section class="gmt-section">
+      <h3 class="gmt-section-title">Party</h3>
+      <div class="gmt-row">
+        <div class="gmt-field">
+          <label for="partyLevel">Party Level</label>
+          <input type="number" name="partyLevel" id="partyLevel" min="1" max="20" value="5">
+        </div>
+        <div class="gmt-field">
+          <label for="partySize">Party Size</label>
+          <input type="number" name="partySize" id="partySize" min="1" max="8" value="4">
+        </div>
+      </div>
+    </section>
+
+    <section class="gmt-section">
+      <h3 class="gmt-section-title">Encounter Settings</h3>
+
+      <div class="gmt-field">
+        <label for="terrain">Terrain</label>
+        <select name="terrain" id="terrain">
+          {{#each terrainOptions}}
+            <option value="{{value}}">{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      <div class="gmt-field">
+        <label for="genMode">Generation Mode</label>
+        <select name="genMode" id="genMode">
+          <option value="random">Random (weighted template)</option>
+          <option value="template">Choose Template</option>
+          <option value="custom">Custom (choose difficulty)</option>
+        </select>
+      </div>
+
+      <div class="gmt-field template-row" hidden>
+        <label for="templateKey">Template</label>
+        <select name="templateKey" id="templateKey">
+          {{#each templateOptions}}
+            <option value="{{value}}">{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      <div class="gmt-field difficulty-row" hidden>
+        <label for="difficulty">Difficulty</label>
+        <select name="difficulty" id="difficulty">
+          {{#each difficultyOptions}}
+            <option value="{{value}}" {{#if (eq value "moderate")}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      {{#if hasGeminiKey}}
+        <div class="gmt-field gmt-checkbox">
+          <label>
+            <input type="checkbox" name="useAI" checked>
+            AI Narrative (Gemini)
+          </label>
+        </div>
+      {{else}}
+        <p class="gmt-hint">Add a Gemini API key in Module Settings to enable AI narrative.</p>
+      {{/if}}
+    </section>
+
+    {{!-- ===== Action Buttons ===== --}}
+    <div class="gmt-actions">
+      <button type="button" data-action="generate" {{#if isGenerating}}disabled{{/if}}>
+        {{#if isGenerating}}
+          <i class="fas fa-spinner fa-spin"></i> Generating…
+        {{else}}
+          <i class="fas fa-dice-d20"></i> Generate Encounter
+        {{/if}}
+      </button>
+    </div>
+  </form>
+
+  {{!-- ===== Result Panel ===== --}}
+  {{#if hasResult}}
+  <section class="gmt-result">
+    <div class="gmt-result-header">
+      <h3>{{encounter.templateName}}</h3>
+      <div class="gmt-result-meta">
+        <span class="gmt-badge difficulty-{{encounter.difficulty}}">{{encounter.difficulty}}</span>
+        <span>Level {{encounter.partyLevel}} · {{encounter.partySize}} players</span>
+        <span>{{lookup terrainLabels encounter.terrain}}</span>
+      </div>
+      <p class="gmt-xp">
+        {{#if encounter.actualXP}}
+          XP Budget: {{encounter.xpBudget}} (Actual: {{encounter.actualXP}})
+        {{else}}
+          XP Budget: {{encounter.xpBudget}}
+          {{#if encounter.baseXP}}(base {{encounter.baseXP}}){{/if}}
+        {{/if}}
+      </p>
+    </div>
+
+    <table class="gmt-creature-table">
+      <thead>
+        <tr>
+          <th>Creature</th>
+          <th>Role</th>
+          <th>Lvl</th>
+          <th>HP</th>
+          <th>AC</th>
+          <th>XP ea.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each summary}}
+        <tr>
+          <td>
+            {{#if (gt count 1)}}{{count}}× {{/if}}{{name}}
+            {{#if remaster}}<em class="gmt-remaster">[R]</em>{{/if}}
+          </td>
+          <td>{{role}}</td>
+          <td>{{level}}</td>
+          <td>{{hp}}</td>
+          <td>{{ac}}</td>
+          <td>{{xpEach}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    {{#if encounter.aiNarrative}}
+    <div class="gmt-narrative">
+      <h4>Setting</h4>
+      <p>{{encounter.aiNarrative.setting_description}}</p>
+      <h4>The Encounter</h4>
+      <p>{{encounter.aiNarrative.monster_description}}</p>
+      <h4>Hook</h4>
+      <p>{{encounter.aiNarrative.encounter_hook}}</p>
+      <h4>Tactical Notes</h4>
+      <p>{{encounter.aiNarrative.tactical_notes}}</p>
+      <h4>Battle Map Setup</h4>
+      <p>{{encounter.aiNarrative.battle_map_details}}</p>
+    </div>
+    {{/if}}
+
+    <div class="gmt-result-actions">
+      <button type="button" data-action="saveJournal">
+        <i class="fas fa-book"></i> Save to Journal
+      </button>
+      <button type="button" data-action="clearResult" class="gmt-secondary">
+        <i class="fas fa-times"></i> Clear
+      </button>
+    </div>
+  </section>
+  {{/if}}
+</div>
