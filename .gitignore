@@ -12,6 +12,7 @@ __pycache__/
 Thumbs.db
 
 # Personal notes
+docs/
 notes.txt
 npcs.json
 
@@ -24,3 +25,4 @@ npcs.json
 # Foundry module build artifacts
 foundry-module/pf2e-gm-toolkit/node_modules/
 foundry-module/pf2e-gm-toolkit/dist/
+.claude/
