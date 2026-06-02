@@ -1,0 +1,48 @@
+{
+  "id": "pf2e-gm-toolkit",
+  "title": "Pathfinder GM Toolkit",
+  "description": "Encounter builder and NPC generator for Pathfinder 2e. Reads creatures directly from your installed Foundry compendium packs (no bundled monster data — it uses whatever bestiary books you have). Generates terrain-filtered encounters using official XP budget rules, creates richly detailed NPCs, and optionally enhances both with AI narrative via Google Gemini.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Tod Moses II",
+      "email": "tod.mosesii@gmail.com"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "scripts": [
+    "scripts/constants.js",
+    "scripts/encounter-logic.js",
+    "scripts/npc-logic.js",
+    "scripts/ai-tools.js",
+    "scripts/storage.js",
+    "scripts/actor-creator.js",
+    "scripts/encounter-app.js",
+    "scripts/npc-app.js",
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/gm-toolkit.css"
+  ],
+  "languages": [],
+  "packs": [],
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.0.0"
+        }
+      }
+    ]
+  },
+  "url": "https://github.com/azhreii/pathfinder-gm-toolkit",
+  "manifest": "https://raw.githubusercontent.com/azhreii/pathfinder-gm-toolkit/foundry-module/foundry-module/pf2e-gm-toolkit/module.json",
+  "download": "https://github.com/azhreii/pathfinder-gm-toolkit/releases/latest/download/pf2e-gm-toolkit.zip",
+  "readme": "https://github.com/azhreii/pathfinder-gm-toolkit/blob/foundry-module/README.md",
+  "changelog": "https://github.com/azhreii/pathfinder-gm-toolkit/blob/foundry-module/CHANGELOG.md"
+}

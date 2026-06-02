@@ -1,0 +1,387 @@
+/* =============================================================
+   PF2e GM Toolkit — Foundry v13 styles
+   ============================================================= */
+
+/* ---- Journal sidebar buttons ---- */
+.gmt-sidebar-buttons {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.gmt-sidebar-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-button);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-12);
+  cursor: pointer;
+}
+
+.gmt-sidebar-btn:hover {
+  background: var(--color-bg-button-hover);
+}
+
+.pf2e-gm-toolkit .gmt-app-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  font-family: var(--font-primary);
+  font-size: var(--font-size-14);
+  color: var(--color-text-primary);
+}
+
+/* ---- Form layout ---- */
+.gmt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gmt-section {
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-option);
+}
+
+.gmt-section-title {
+  font-size: var(--font-size-13);
+  font-weight: bold;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.gmt-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.gmt-row .gmt-field {
+  flex: 1;
+}
+
+.gmt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.35rem;
+}
+
+.gmt-field label {
+  font-size: var(--font-size-12);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.gmt-field input[type="number"],
+.gmt-field select {
+  height: 28px;
+  padding: 0 0.4rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-13);
+}
+
+.gmt-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--font-size-13);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.gmt-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.gmt-hint {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0.2rem 0 0;
+}
+
+/* ---- Buttons ---- */
+.gmt-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.gmt-actions button,
+.gmt-result-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  background: var(--color-bg-button);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-13);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gmt-actions button:hover,
+.gmt-result-actions button:hover {
+  background: var(--color-bg-button-hover);
+}
+
+.gmt-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gmt-secondary {
+  border-color: var(--color-border-light-tertiary) !important;
+  color: var(--color-text-muted) !important;
+}
+
+.gmt-result-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ---- Result panel ---- */
+.gmt-result {
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-bg-option);
+}
+
+.gmt-result-header h3,
+.gmt-npc-header h3 {
+  margin: 0 0 0.2rem;
+  font-size: var(--font-size-16);
+}
+
+.gmt-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: var(--font-size-12);
+  color: var(--color-text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.gmt-xp {
+  font-size: var(--font-size-12);
+  color: var(--color-text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+/* ---- Badges ---- */
+.gmt-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: var(--font-size-11);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.difficulty-trivial { background: #a8d5a2; color: #1a3d18; }
+.difficulty-low     { background: #a2c4d5; color: #0f2d3d; }
+.difficulty-moderate { background: #d5c4a2; color: #3d2d0f; }
+.difficulty-severe  { background: #d5a2a2; color: #3d0f0f; }
+.difficulty-extreme { background: #8b1a1a; color: #fff; }
+.gmt-ai-badge       { background: #7b5ea7; color: #fff; }
+
+/* ---- Creature table ---- */
+.gmt-creature-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-12);
+  margin-bottom: 0.5rem;
+}
+
+.gmt-creature-table th {
+  background: var(--color-bg-header);
+  padding: 0.25rem 0.4rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.gmt-creature-table td {
+  padding: 0.2rem 0.4rem;
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+}
+
+.gmt-creature-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gmt-remaster {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+}
+
+/* ---- Narrative section ---- */
+.gmt-narrative {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border-light-primary);
+}
+
+.gmt-narrative h4 {
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  margin: 0.5rem 0 0.2rem;
+  color: var(--color-text-secondary);
+}
+
+.gmt-narrative p {
+  font-size: var(--font-size-12);
+  margin: 0 0 0.35rem;
+  line-height: 1.45;
+}
+
+/* ---- NPC detail list ---- */
+.gmt-npc-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 0.75rem;
+  font-size: var(--font-size-13);
+  margin: 0.5rem 0 0;
+}
+
+.gmt-npc-details dt {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.gmt-npc-details dd {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ---- Auto-detected field labels ---- */
+.gmt-detected {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ---- Token placement controls (shown above result actions) ---- */
+.gmt-placement-controls {
+  display: flex;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--color-border-light-tertiary);
+  margin-top: 0.5rem;
+}
+
+/* ---- Compendium link button in creature table ---- */
+.gmt-link-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-hyperlink);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-align: left;
+}
+
+.gmt-link-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* ---- Archetype picker ---- */
+.gmt-archetype-section {
+  margin-top: 0.5rem;
+}
+
+.gmt-selected-archetype {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  font-size: var(--font-size-13);
+  margin-bottom: 0.4rem;
+}
+
+.gmt-archetype-picker {
+  margin-top: 0.5rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gmt-archetype-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-bg-header);
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.gmt-archetype-filters select {
+  flex: 1;
+  height: 26px;
+  font-size: var(--font-size-12);
+}
+
+.gmt-archetype-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.gmt-archetype-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  text-align: left;
+}
+
+.gmt-archetype-entry:hover {
+  background: var(--color-bg-option);
+}
+
+.gmt-archetype-entry:last-child {
+  border-bottom: none;
+}
+
+.gmt-arch-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.gmt-arch-meta {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+}

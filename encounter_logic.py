@@ -8,10 +8,7 @@ Foundry module later.
 import random
 from collections import Counter, defaultdict
 
-
-def format_terrain_name(terrain):
-    """Convert internal keys like 'planar_fire' into display text."""
-    return " ".join(part.capitalize() for part in terrain.split("_"))
+from utils import format_terrain_name
 
 
 def monster_matches_terrain(monster, terrain, terrain_mapping):

@@ -153,7 +153,12 @@ def test_get_encounter_templates():
 
 
 def test_generate_npc():
-    """Test NPC generation multiple times."""
+    """Test NPC generation multiple times.
+
+    The generator now returns a tuple:
+    - formatted text for display
+    - structured data for saving
+    """
     print("\n" + "=" * 60)
     print("TEST: generate_npc()")
     print("=" * 60)
@@ -163,21 +168,26 @@ def test_generate_npc():
 
     for i in range(5):
         try:
-            result = npc.generate_npc()
+            result_text, result_data = npc.generate_npc(use_ai=False)
             # Check that required fields are present in output
-            has_name = "Name:" in result
-            has_race = "Race:" in result
-            has_sex = "Sex:" in result
-            has_occupation = "Occupation:" in result
-            has_personality = "Personality:" in result
+            has_name = "Name:" in result_text
+            has_race = "Race:" in result_text
+            has_sex = "Sex:" in result_text
+            has_occupation = "Occupation:" in result_text
+            has_personality = "Personality:" in result_text
 
             if has_name and has_race and has_sex and has_occupation and has_personality:
                 # Extract the name line for display
-                lines = [l.strip() for l in result.strip().split("\n") if l.strip()]
+                lines = [l.strip() for l in result_text.strip().split("\n") if l.strip()]
                 name_line = [l for l in lines if l.startswith("Name:")][0]
                 race_line = [l for l in lines if l.startswith("Race:")][0]
-                print(f"  PASS: NPC #{i+1} - {name_line}, {race_line}")
-                passed += 1
+                has_no_structured_data = result_data is None
+                if has_no_structured_data:
+                    print(f"  PASS: NPC #{i+1} - {name_line}, {race_line}")
+                    passed += 1
+                else:
+                    print(f"  FAIL: NPC #{i+1} - expected no structured data for non-AI mode")
+                    failed += 1
             else:
                 print(f"  FAIL: NPC #{i+1} - missing fields in output")
                 failed += 1
@@ -248,9 +258,6 @@ def test_generate_random_encounter():
         print("  SKIP: No monster index loaded")
         return True
 
-    # Store terrain_mapping in npc module scope so the function can access it
-    npc.terrain_mapping = terrain_mapping
-
     test_cases = [
         (1, 4, "forest"),
         (5, 4, "underground"),
@@ -266,10 +273,17 @@ def test_generate_random_encounter():
     failed = 0
     for party_level, party_size, terrain in test_cases:
         try:
-            result = npc.generate_random_encounter(party_level, party_size, terrain, monster_index)
-            if "Encounter Generated:" in result or "Cannot build" in result or "No monsters found" in result:
+            # Pass terrain_mapping explicitly instead of mutating module state.
+            result_text, result_data = npc.generate_random_encounter(
+                party_level, party_size, terrain, monster_index, terrain_mapping
+            )
+            if (
+                "Encounter Generated:" in result_text
+                or "Cannot build" in result_text
+                or "No monsters found" in result_text
+            ):
                 # Truncate output for readability
-                first_lines = result.strip().split("\n")[:3]
+                first_lines = result_text.strip().split("\n")[:3]
                 summary = " | ".join(l.strip() for l in first_lines if l.strip())
                 print(f"  PASS: Level {party_level:>2}, {party_size} PCs, {npc.format_terrain_name(terrain):>15} -> {summary[:80]}")
                 passed += 1
@@ -297,8 +311,6 @@ def test_generate_custom_encounter():
         print("  SKIP: No monster index loaded")
         return True
 
-    npc.terrain_mapping = terrain_mapping
-
     difficulties = ["trivial", "low", "moderate", "severe", "extreme"]
 
     test_cases = [
@@ -315,9 +327,12 @@ def test_generate_custom_encounter():
     failed = 0
     for party_level, party_size, difficulty, terrain in test_cases:
         try:
-            result = npc.generate_custom_encounter(party_level, party_size, difficulty, terrain, monster_index)
-            if "Custom Encounter" in result or "No monsters" in result:
-                first_lines = result.strip().split("\n")[:3]
+            # Pass terrain_mapping explicitly instead of mutating module state.
+            result_text, result_data = npc.generate_custom_encounter(
+                party_level, party_size, difficulty, terrain, monster_index, terrain_mapping
+            )
+            if "Custom Encounter" in result_text or "No monsters" in result_text:
+                first_lines = result_text.strip().split("\n")[:3]
                 summary = " | ".join(l.strip() for l in first_lines if l.strip())
                 print(f"  PASS: Lvl {party_level:>2}, {party_size} PCs, {difficulty:>8}, {npc.format_terrain_name(terrain):>15} -> {summary[:70]}")
                 passed += 1
@@ -345,8 +360,6 @@ def test_generate_encounter_from_template():
         print("  SKIP: No monster index loaded")
         return True
 
-    npc.terrain_mapping = terrain_mapping
-
     templates = npc.get_encounter_templates()
     template_keys = list(templates.keys())
 
@@ -362,9 +375,16 @@ def test_generate_encounter_from_template():
         template_name = templates[template_key]["name"]
         for level in test_levels:
             try:
-                result = npc.generate_encounter_from_template(template_key, level, party_size, terrain, monster_index)
-                if "Encounter Generated:" in result or "Cannot build" in result or "No monsters" in result:
-                    is_success = "Encounter Generated:" in result
+                # Pass terrain_mapping explicitly instead of mutating module state.
+                result_text, result_data = npc.generate_encounter_from_template(
+                    template_key, level, party_size, terrain, monster_index, terrain_mapping
+                )
+                if (
+                    "Encounter Generated:" in result_text
+                    or "Cannot build" in result_text
+                    or "No monsters" in result_text
+                ):
+                    is_success = "Encounter Generated:" in result_text
                     status = "OK" if is_success else "No match"
                     print(f"  PASS: {template_name:<25} Lvl {level:>2} -> {status}")
                     passed += 1
