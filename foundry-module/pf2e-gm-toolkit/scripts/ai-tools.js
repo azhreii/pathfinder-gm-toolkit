@@ -385,3 +385,100 @@ Make it atmospheric and specific to the terrain and creatures. Avoid generic des
   }
   return result;
 };
+
+/* ------------------------------------------------------------------ */
+/* Model discovery — used by the settings UI model picker              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fetch the list of text-generation models available from the configured
+ * provider.  Returns an array of { id } objects sorted alphabetically.
+ * Throws on HTTP error so the caller (settings-ui.js) can surface the
+ * failure to the user rather than silently doing nothing.
+ *
+ * @param {string} provider  "gemini" | "openai" | "mistral" | "openai-compatible"
+ * @param {string} apiKey
+ * @param {string} baseUrl   Required only for "openai-compatible"
+ * @returns {Promise<Array<{id: string}>>}
+ */
+GMTOOLKIT.fetchAvailableModels = async function (provider, apiKey, baseUrl) {
+  switch (provider) {
+    case "gemini":
+      return await _fetchGeminiModels(apiKey);
+    case "openai":
+      return await _fetchOpenAIStyleModels("https://api.openai.com", apiKey, "openai");
+    case "mistral":
+      return await _fetchOpenAIStyleModels("https://api.mistral.ai", apiKey, "mistral");
+    case "openai-compatible": {
+      if (!baseUrl) throw new Error("Custom Endpoint URL is required for openai-compatible provider.");
+      return await _fetchOpenAIStyleModels(baseUrl.replace(/\/$/, ""), apiKey, "generic");
+    }
+    default:
+      return [];
+  }
+};
+
+/**
+ * Fetch Gemini models that support text generation.
+ * @param {string} apiKey
+ * @returns {Promise<Array<{id: string}>>}
+ */
+async function _fetchGeminiModels(apiKey) {
+  /* GEMINI_API_BASE ends with "/models" — strip it to get the base, then re-append
+     the models list path.  The list endpoint is the same path without a model name. */
+  const url = `${GEMINI_API_BASE}?key=${encodeURIComponent(apiKey)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    const err = await resp.text().catch(() => "");
+    throw new Error(`Gemini API error ${resp.status}: ${err}`);
+  }
+  const data = await resp.json();
+  return (data.models || [])
+    /* Only models that support generateContent are useful here. */
+    .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+    /* Strip the "models/" prefix Gemini uses in its name field. */
+    .map((m) => ({ id: m.name.replace(/^models\//, "") }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
+ * Fetch models from any OpenAI-format /v1/models endpoint and filter to
+ * text-generation models only.
+ *
+ * @param {string} baseUrl   e.g. "https://api.openai.com"
+ * @param {string} apiKey
+ * @param {"openai"|"mistral"|"generic"} hint  Controls filtering strictness
+ * @returns {Promise<Array<{id: string}>>}
+ */
+async function _fetchOpenAIStyleModels(baseUrl, apiKey, hint) {
+  const resp = await fetch(`${baseUrl}/v1/models`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!resp.ok) {
+    const err = await resp.text().catch(() => "");
+    throw new Error(`API error ${resp.status}: ${err}`);
+  }
+  const data = await resp.json();
+  const all = data.data || [];
+
+  let filtered;
+  if (hint === "openai") {
+    /* OpenAI returns embeddings, audio, image, and legacy models — keep only
+       GPT chat and O-series reasoning models. */
+    filtered = all.filter((m) => {
+      const id = m.id.toLowerCase();
+      return (id.startsWith("gpt-") || /^o[0-9]/.test(id)) &&
+             !id.includes("realtime") && !id.includes("audio");
+    });
+  } else if (hint === "mistral") {
+    /* Mistral's list is small; only exclude embedding models. */
+    filtered = all.filter((m) => !m.id.toLowerCase().includes("embed"));
+  } else {
+    /* Generic openai-compatible (Ollama, Groq, LM Studio, etc.) — show everything. */
+    filtered = all;
+  }
+
+  return filtered
+    .map((m) => ({ id: m.id }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
