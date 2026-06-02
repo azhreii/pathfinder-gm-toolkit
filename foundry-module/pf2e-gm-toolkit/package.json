@@ -1,6 +1,6 @@
 {
   "name": "pf2e-gm-toolkit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Encounter builder and NPC generator for Pathfinder 2e in Foundry VTT",
   "scripts": {
     "build": "node build.mjs",
