@@ -2,7 +2,9 @@
  * Encounter Builder UI — ApplicationV2 (Foundry v13).
  */
 
-class EncounterBuilderApp extends foundry.applications.api.ApplicationV2 {
+class EncounterBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   static DEFAULT_OPTIONS = {
     id: "pf2e-gm-toolkit-encounter",
     classes: ["pf2e-gm-toolkit", "encounter-builder"],
