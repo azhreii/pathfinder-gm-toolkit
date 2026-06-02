@@ -93,6 +93,10 @@ GMTOOLKIT.buildArchetypeIndex = async function () {
           ? entry.system.traits.value
           : [];
 
+        /* Only include humanoid creatures — filters out animals, undead, elementals,
+           and other monsters that are not useful as NPC mechanical bases. */
+        if (!traits.includes("humanoid")) continue;
+
         archetypes.push({
           packId:   pack.collection,
           actorId:  entry._id,

@@ -203,22 +203,39 @@ GMTOOLKIT.loadModuleData = async function () {
  */
 GMTOOLKIT.detectParty = function () {
   try {
-    const chars = game.users
-      .filter((u) => u.active && !u.isGM && u.character)
-      .map((u) => u.character);
-    const partySize = chars.length || null;
-    const partyLevel =
-      partySize > 0
-        ? Math.round(
-            chars.reduce(
-              (sum, a) => sum + (a.system?.details?.level?.value ?? 1),
-              0
-            ) / partySize
-          )
-        : null;
-    return { partyLevel, partySize };
-  } catch {
-    /* game.users may not be available this early — return nulls rather than throw. */
+    /* PF2e v6+ exposes game.actors.party — the active party actor with all
+       members listed regardless of who is currently logged in.  This is the
+       most accurate source and handles offline players correctly. */
+    var pf2eParty = game.actors && game.actors.party;
+    if (pf2eParty && pf2eParty.members && pf2eParty.members.length > 0) {
+      var members = pf2eParty.members.filter(function (m) { return m.type === "character"; });
+      if (members.length > 0) {
+        var partySize = members.length;
+        var partyLevel = Math.round(
+          members.reduce(function (sum, a) {
+            return sum + (a.system && a.system.details && a.system.details.level
+              ? a.system.details.level.value : 1);
+          }, 0) / partySize
+        );
+        return { partyLevel: partyLevel, partySize: partySize };
+      }
+    }
+
+    /* Fallback: read from currently connected non-GM users with assigned characters. */
+    var chars = game.users
+      .filter(function (u) { return u.active && !u.isGM && u.character; })
+      .map(function (u) { return u.character; });
+    var size = chars.length || null;
+    var level = size > 0
+      ? Math.round(
+          chars.reduce(function (sum, a) {
+            return sum + (a.system && a.system.details && a.system.details.level
+              ? a.system.details.level.value : 1);
+          }, 0) / size
+        )
+      : null;
+    return { partyLevel: level, partySize: size };
+  } catch (e) {
     return { partyLevel: null, partySize: null };
   }
 };
@@ -248,20 +265,35 @@ GMTOOLKIT.detectSceneTerrain = function () {
  * @returns {Promise<string[]>}
  */
 GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
-  /* Default option values — avoid destructuring default object in plain-script context. */
-  var hidden = (options && options.hidden !== undefined) ? options.hidden : true;
+  var hidden      = (options && options.hidden      !== undefined) ? options.hidden      : true;
   var addToCombat = (options && options.addToCombat !== undefined) ? options.addToCombat : false;
 
-  var scene = canvas?.scene;
+  var scene = canvas && canvas.scene;
   if (!scene) {
     ui.notifications.warn("PF2e GM Toolkit | No active scene — cannot place tokens.");
     return [];
   }
 
-  var dims = scene.dimensions ?? {};
-  var gridSize = scene.grid?.size ?? 100;
-  var centerX = (dims.width ?? 2000) / 2;
-  var centerY = (dims.height ?? 2000) / 2;
+  /* Tokens in Foundry v13 must reference a world actor — not a compendium document.
+     We import each creature into a hidden GM Toolkit folder the first time it is
+     needed, then reuse the imported actor on subsequent placements.
+     The folder is flagged so we can find it reliably without hard-coding its name. */
+  var encounterFolder = game.folders.find(function (f) {
+    return f.type === "Actor" && f.getFlag("pf2e-gm-toolkit", "encounterActorFolder");
+  });
+  if (!encounterFolder) {
+    encounterFolder = await Folder.create({
+      name:  "GM Toolkit — Encounter Actors",
+      type:  "Actor",
+      color: "#4a1a72",
+      flags: { "pf2e-gm-toolkit": { encounterActorFolder: true } },
+    });
+  }
+
+  var dims     = scene.dimensions  || {};
+  var gridSize = (scene.grid && scene.grid.size) || 100;
+  var centerX  = (dims.width  || 2000) / 2;
+  var centerY  = (dims.height || 2000) / 2;
 
   var tokenDataArray = [];
   var slot = 0;
@@ -269,7 +301,6 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
   for (var ci = 0; ci < summary.length; ci++) {
     var creature = summary[ci];
 
-    /* Skip entries that cannot be resolved to a compendium document. */
     if (!creature.packId || !creature.actorId) {
       console.warn("PF2e GM Toolkit | Skipping " + creature.name + " — missing packId or actorId.");
       continue;
@@ -281,37 +312,55 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
       continue;
     }
 
-    var actorDoc;
-    try {
-      actorDoc = await pack.getDocument(creature.actorId);
-    } catch (err) {
-      console.warn("PF2e GM Toolkit | Could not load " + creature.name + ":", err);
-      continue;
-    }
-    if (!actorDoc) continue;
+    /* Check for a previously imported world actor so we never duplicate. */
+    var sourceId = "Compendium." + pack.collection + ".Actor." + creature.actorId;
+    var worldActor = game.actors.find(function (a) {
+      return a.getFlag("core", "sourceId") === sourceId;
+    });
 
-    var proto = actorDoc.prototypeToken.toObject();
-    var count = creature.count ?? 1;
+    if (!worldActor) {
+      var actorDoc;
+      try {
+        actorDoc = await pack.getDocument(creature.actorId);
+      } catch (err) {
+        console.warn("PF2e GM Toolkit | Could not load " + creature.name + ":", err);
+        continue;
+      }
+      if (!actorDoc) continue;
+
+      try {
+        var actorData  = actorDoc.toObject();
+        actorData._id  = undefined;   // let Foundry assign a new world ID
+        actorData.folder = encounterFolder.id;
+        /* Embed sourceId at creation time so future runs can find this actor. */
+        actorData.flags           = actorData.flags           || {};
+        actorData.flags.core      = actorData.flags.core      || {};
+        actorData.flags.core.sourceId = sourceId;
+        worldActor = await Actor.create(actorData, { renderSheet: false });
+      } catch (err) {
+        console.warn("PF2e GM Toolkit | Could not import " + creature.name + ":", err);
+        continue;
+      }
+    }
+
+    var proto = worldActor.prototypeToken.toObject();
+    var count = creature.count || 1;
 
     for (var i = 0; i < count; i++) {
       /* Spiral placement outward from scene centre so tokens don't stack. */
       var angle = slot * (Math.PI * 2) / 8;
-      var ring = Math.floor(slot / 8) + 1;
-      var x =
-        Math.round((centerX + Math.cos(angle) * gridSize * ring) / gridSize) *
-        gridSize;
-      var y =
-        Math.round((centerY + Math.sin(angle) * gridSize * ring) / gridSize) *
-        gridSize;
+      var ring  = Math.floor(slot / 8) + 1;
+      var x = Math.round((centerX + Math.cos(angle) * gridSize * ring) / gridSize) * gridSize;
+      var y = Math.round((centerY + Math.sin(angle) * gridSize * ring) / gridSize) * gridSize;
 
       tokenDataArray.push(
         foundry.utils.mergeObject(proto, {
-          x: x,
-          y: y,
-          hidden: hidden,
+          x:         x,
+          y:         y,
+          hidden:    hidden,
+          actorId:   worldActor.id,
           actorLink: false,
-          /* delta carries the name override for unlinked tokens in Foundry v13 */
-          delta: { name: creature.name },
+          delta:     { name: creature.name },
         }, { inplace: false })
       );
       slot++;

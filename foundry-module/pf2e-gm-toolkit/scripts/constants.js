@@ -112,7 +112,7 @@ GMTOOLKIT.LLM_PROVIDERS = {
  * and the user is expected to supply a value in the Model field.
  */
 GMTOOLKIT.DEFAULT_MODELS = {
-  gemini:             "gemini-2.0-flash",
+  gemini:             "gemini-2.5-flash",
   openai:             "gpt-4o",
   mistral:            "mistral-large-latest",
   "openai-compatible": "",
