@@ -114,14 +114,14 @@ See [LICENSE](LICENSE) for the full terms. Source code is made available for rev
 
 ## Roadmap
 
-| Phase | Status | What's coming |
-|-------|--------|---------------|
-| Phase 0 — Walking skeleton | ✅ Complete | Basic generation, compendium indexing |
-| Phase 1 — Foundry integration | ✅ Complete | Tokens, actors, party detection, multi-LLM |
-| Phase 2 — NPC depth + shops | 🔜 Next | Boss pinning, merchant inventory generation |
-| Phase 3 — World config | Planned | Custom ancestries, world lore, AI context |
+| Phase | Status | What's in it |
+|-------|--------|--------------|
+| Phase 0 — Walking skeleton | ✅ Complete | Basic generation, compendium indexing, journal persistence |
+| Phase 1 — Foundry integration | ✅ Complete | Tokens, actors, party detection, multi-LLM, dynamic model picker, dedicated sidebar tab |
+| Phase 2 — NPC depth + shops + sidebar | 🔜 Next | Boss pinning, archetype picker improvements, merchant inventory, in-session sidebar cockpit (wandering monsters, hazard placement, session history) |
+| Phase 3 — World config | Planned | Custom ancestries, world lore, AI context injection |
 | Phase 4 — Regional system | Planned | Named regions, scene-to-region mapping |
-| Phase 5 — Quick-draw + launch | Planned | One-click in-session mode, Forge listing |
+| Phase 5 — Polish + launch | Planned | Keyboard shortcuts, esbuild bundle, Sentry, Forge listing |
 
 ---
 

@@ -19,9 +19,7 @@
  *   callLLM(prompt)
  *   enhanceNPCWithAI(name, race, sex)        — existing signature preserved
  *   enhanceEncounterWithAI(terrain, templateName, monsters) — same
- *   getGeminiKey()                           — deprecated shim; kept for
- *                                              backwards compat with apps that
- *                                              have not yet migrated to isAIEnabled()
+ *   getGeminiKey()                           — deprecated shim (Phase 5 removal)
  */
 
 /* ------------------------------------------------------------------ */
@@ -76,14 +74,9 @@ GMTOOLKIT.isAIEnabled = function () {
 };
 
 /**
- * Deprecated — kept so that encounter-app.js and npc-app.js can continue to
- * call GMTOOLKIT.getGeminiKey() until they are updated to use isAIEnabled().
- *
- * Returns the stored API key when the selected provider is "gemini", otherwise
- * returns null.  Code that only checked for a truthy return value to decide
- * whether AI is enabled will still work correctly for the gemini provider.
- *
- * @deprecated Use GMTOOLKIT.getLLMConfig() or GMTOOLKIT.isAIEnabled() instead.
+ * @deprecated All callers have been migrated to isAIEnabled(). This shim is
+ * kept only so any third-party code that may reference it doesn't hard-crash.
+ * Will be removed in Phase 5 cleanup.
  * @returns {string|null}
  */
 GMTOOLKIT.getGeminiKey = function () {
@@ -157,20 +150,29 @@ function _cleanJsonResponse(text) {
  * @throws {Error}             On HTTP error or JSON parse failure
  */
 async function _callOpenAIFormat(prompt, url, apiKey, model) {
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      /* json_object mode signals the model to return valid JSON.
-       * Not all openai-compatible servers honour this, but it never hurts. */
-      response_format: { type: "json_object" },
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        /* json_object mode signals the model to return valid JSON.
+         * Not all openai-compatible servers honour this, but it never hurts. */
+        response_format: { type: "json_object" },
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!resp.ok) {
     /* Pull the error body for a more useful log message. */
@@ -181,8 +183,8 @@ async function _callOpenAIFormat(prompt, url, apiKey, model) {
   const data = await resp.json();
 
   /* Standard OpenAI response shape — content lives here. */
-  const text = data?.choices?.[0]?.message?.content ?? "";
-  return JSON.parse(_cleanJsonResponse(text));
+  const raw = data?.choices?.[0]?.message?.content ?? "";
+  return JSON.parse(_cleanJsonResponse(raw));
 }
 
 /**
@@ -197,7 +199,9 @@ async function _callOpenAIFormat(prompt, url, apiKey, model) {
  * @throws {Error}
  */
 async function _callGemini(prompt, apiKey, model) {
-  /* API key is passed as a query parameter for the Gemini REST API. */
+  /* API key is passed as a query parameter — Gemini REST API does not support
+   * Bearer token auth for direct client-side calls; the key in the URL is the
+   * documented approach for the generateContent endpoint. */
   const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
   const body = {
@@ -208,11 +212,20 @@ async function _callGemini(prompt, apiKey, model) {
     generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
   };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const err = await response.text().catch(() => "(no body)");
@@ -280,7 +293,11 @@ GMTOOLKIT.callLLM = async function (prompt) {
         return null;
     }
   } catch (err) {
-    console.warn("PF2e GM Toolkit | LLM call failed:", err.message);
+    if (err.name === "AbortError") {
+      console.warn("PF2e GM Toolkit | LLM call timed out after 30 seconds.");
+    } else {
+      console.warn("PF2e GM Toolkit | LLM call failed:", err.message);
+    }
     return null;
   }
 };

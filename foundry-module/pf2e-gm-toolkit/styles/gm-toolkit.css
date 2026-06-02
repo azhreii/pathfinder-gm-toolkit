@@ -434,7 +434,500 @@
   color: var(--color-text-primary);
 }
 
+/* Right-hand cluster inside each archetype row: badge + level/category label. */
+.gmt-arch-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
 .gmt-arch-meta {
   font-size: var(--font-size-11);
   color: var(--color-text-muted);
+}
+
+/* ---- Source badges ---- */
+/* Inherits .gmt-badge geometry from the badge block above. */
+.source-badge {
+  display: inline-block;
+  padding: 0.08rem 0.38rem;
+  border-radius: 999px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* NPC Gallery — amber/gold to stand out as the preferred source. */
+.source-badge.npc-gallery {
+  background: #c8860a;
+  color: #fff8ee;
+}
+
+/* Bestiary — muted so it recedes visually relative to NPC Gallery entries. */
+.source-badge.bestiary {
+  background: var(--color-bg-header, #ddd);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-light-tertiary);
+}
+
+/* ---- Level role hint line ---- */
+.gmt-level-role {
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+/* ---- Boss pinning ---- */
+
+/* Notice bar shown in the result header when a boss is locked. */
+.gmt-boss-locked-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.4rem;
+  padding: 0.3rem 0.55rem;
+  background: #3d1f00;
+  border: 1px solid #8b4513;
+  border-radius: 4px;
+  color: #f4c87a;
+  font-size: var(--font-size-12);
+}
+
+.gmt-boss-locked-note i {
+  flex-shrink: 0;
+  color: #f4c87a;
+}
+
+/* Highlight the boss creature row with a warm gold tint. */
+.gmt-boss-row {
+  background: rgba(212, 160, 23, 0.12);
+}
+
+.gmt-boss-row td {
+  font-weight: 600;
+}
+
+/* Column header and cells for the pin/unpin controls — narrow, centred. */
+.gmt-boss-col {
+  width: 56px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Gold crown badge shown on the pinned boss row. */
+.gmt-boss-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #c8860a;
+  font-size: var(--font-size-14);
+  vertical-align: middle;
+}
+
+/* Pin button — small, icon-only, no background by default. */
+.gmt-pin-btn,
+.gmt-unpin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s, color 0.15s;
+}
+
+.gmt-pin-btn i {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-11);
+}
+
+.gmt-pin-btn:hover {
+  background: rgba(212, 160, 23, 0.15);
+  border-color: #c8860a;
+}
+
+.gmt-pin-btn:hover i {
+  color: #c8860a;
+}
+
+/* Unpin button — slightly red tint so it reads as a destructive action. */
+.gmt-unpin-btn i {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-11);
+}
+
+.gmt-unpin-btn:hover {
+  background: rgba(180, 40, 40, 0.15);
+  border-color: #b42828;
+}
+
+.gmt-unpin-btn:hover i {
+  color: #b42828;
+}
+
+/* ---- Share/Save action row (below narrative blocks in result panels) ---- */
+.gmt-share-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--color-border-light-tertiary);
+  justify-content: flex-start;
+}
+
+.gmt-share-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  background: var(--color-bg-button);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-12);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gmt-share-actions button:hover {
+  background: var(--color-bg-button-hover);
+}
+
+/* ---- Chat message card (GM whisper and public share) ---- */
+.gmt-chat-share-msg {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-13);
+  line-height: 1.45;
+}
+
+.gmt-chat-header {
+  margin: 0 0 0.15rem;
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gmt-chat-title {
+  margin: 0 0 0.3rem;
+  font-size: var(--font-size-14);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.gmt-chat-body {
+  margin: 0.3rem 0;
+  font-size: var(--font-size-13);
+  color: var(--color-text-primary);
+}
+
+.gmt-chat-body p {
+  margin: 0.2rem 0;
+}
+
+/* Action row inside a chat whisper card. */
+.gmt-chat-actions {
+  margin-top: 0.45rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Share-to-players button — accent colour to make the primary action obvious. */
+.gmt-share-to-players-btn {
+  border-color: #5a7a5a !important;
+  color: var(--color-text-primary);
+}
+
+.gmt-share-to-players-btn:hover {
+  background: rgba(90, 122, 90, 0.15) !important;
+}
+
+.gmt-share-to-players-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =============================================================
+   Phase 2 — Sidebar Cockpit
+   ============================================================= */
+
+/* ---- Overall sidebar container ---- */
+.gmt-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 0.5rem;
+  font-family: var(--font-primary);
+  font-size: var(--font-size-13);
+  color: var(--color-text-primary);
+  overflow-y: auto;
+}
+
+/* ---- Zone 1: Context strip ---- */
+.gmt-context-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.3rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+}
+
+.gmt-party-line {
+  flex: 1;
+  font-size: var(--font-size-12);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gmt-context-strip select {
+  height: 24px;
+  padding: 0 0.3rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-12);
+  max-width: 120px;
+}
+
+/* ---- Zone 2: Session history ---- */
+.gmt-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+}
+
+.gmt-history-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 22px;
+}
+
+.gmt-history-icon {
+  flex-shrink: 0;
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+}
+
+.gmt-history-name {
+  flex: 1;
+  font-size: var(--font-size-11);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Section header shared by Zones 3 and 4 ---- */
+.gmt-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.2rem 0;
+  margin-bottom: 0.25rem;
+  font-size: var(--font-size-12);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+}
+
+.gmt-section-header-actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+/* ---- Small icon-only button used across Zones 2-4 ---- */
+.gmt-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.3rem;
+  min-width: 22px;
+  min-height: 20px;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  line-height: 1;
+  color: var(--color-text-secondary);
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+
+.gmt-icon-btn:hover {
+  background: var(--color-bg-button-hover);
+  border-color: var(--color-border-light-primary);
+}
+
+/* ---- Zone 3: Wandering monster table ---- */
+.gmt-wandering-section {
+  padding: 0.35rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+}
+
+.gmt-wandering-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-12);
+}
+
+.gmt-wandering-table td {
+  padding: 0.18rem 0.2rem;
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+  vertical-align: middle;
+}
+
+.gmt-wandering-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gmt-die-num {
+  width: 18px;
+  text-align: center;
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.gmt-monster-name {
+  /* Expand to fill available width. */
+  width: 100%;
+}
+
+.gmt-lv {
+  width: 22px;
+  text-align: center;
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.gmt-lock-col {
+  width: 26px;
+  text-align: center;
+}
+
+/* Highlight the currently rolled slot with a warm amber tint. */
+.gmt-wandering-table tr.gmt-rolled td {
+  background: rgba(212, 160, 23, 0.14);
+}
+
+.gmt-wandering-table tr.gmt-rolled .gmt-die-num {
+  color: #c8860a;
+  font-weight: 700;
+}
+
+/* ---- Zone 4: Hazard panel ---- */
+.gmt-hazard-section {
+  padding: 0.35rem 0.4rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+}
+
+.gmt-hazard-filters {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 0.3rem;
+}
+
+.gmt-hazard-search {
+  flex: 1;
+  height: 24px;
+  padding: 0 0.35rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-12);
+}
+
+.gmt-hazard-filters select {
+  height: 24px;
+  padding: 0 0.25rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-12);
+  max-width: 100px;
+}
+
+.gmt-hazard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.gmt-hazard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0.2rem 0.1rem;
+  border-bottom: 1px solid var(--color-border-light-tertiary);
+}
+
+.gmt-hazard-row:last-child {
+  border-bottom: none;
+}
+
+.gmt-hazard-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.gmt-hazard-name {
+  font-size: var(--font-size-12);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gmt-hazard-meta {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+}
+
+.gmt-hazard-actions {
+  display: flex;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+/* ---- Zone 5: Launch buttons ---- */
+.gmt-launch-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: auto;   /* push to bottom of flex column */
+  padding-top: 0.3rem;
 }

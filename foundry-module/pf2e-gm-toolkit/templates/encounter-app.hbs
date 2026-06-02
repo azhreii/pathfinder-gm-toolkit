@@ -93,6 +93,14 @@
   <section class="gmt-result">
     <div class="gmt-result-header">
       <h3>{{encounter.templateName}}</h3>
+      {{!-- Show a prominent notice when a boss is locked so the GM always knows
+           the encounter is in pinned mode and regenerate will only swap supporters. --}}
+      {{#if hasPinnedBoss}}
+      <p class="gmt-boss-locked-note">
+        <i class="fas fa-thumbtack"></i> Boss locked: <strong>{{pinnedBossName}}</strong>
+        — Regenerate replaces supporters only.
+      </p>
+      {{/if}}
       <div class="gmt-result-meta">
         <span class="gmt-badge difficulty-{{encounter.difficulty}}">{{encounter.difficulty}}</span>
         <span>Level {{encounter.partyLevel}} · {{encounter.partySize}} players</span>
@@ -117,11 +125,13 @@
           <th>HP</th>
           <th>AC</th>
           <th>XP ea.</th>
+          <th class="gmt-boss-col">Boss</th>
         </tr>
       </thead>
       <tbody>
         {{#each summary}}
-        <tr>
+        {{!-- Add a CSS class to the boss row so it can be styled distinctly. --}}
+        <tr class="{{#if isBoss}}gmt-boss-row{{/if}}">
           <td>
             {{!-- Render a clickable button when compendium identifiers are available,
                  so the GM can open the full statblock sheet with one click. --}}
@@ -146,6 +156,26 @@
           <td>{{hp}}</td>
           <td>{{ac}}</td>
           <td>{{xpEach}}</td>
+          <td class="gmt-boss-col">
+            {{#if isBoss}}
+              {{!-- This row IS the pinned boss — show a badge and an unpin button. --}}
+              <span class="gmt-boss-badge" title="Pinned boss">
+                <i class="fas fa-crown"></i>
+              </span>
+              <button type="button" class="gmt-unpin-btn" data-action="unpinBoss"
+                title="Unpin boss">
+                <i class="fas fa-times"></i>
+              </button>
+            {{else}}
+              {{!-- Allow any non-boss row to become the new boss. --}}
+              <button type="button" class="gmt-pin-btn" data-action="pinBoss"
+                data-boss-actor-id="{{actorId}}"
+                data-boss-name="{{name}}"
+                title="Pin as boss">
+                <i class="fas fa-thumbtack"></i>
+              </button>
+            {{/if}}
+          </td>
         </tr>
         {{/each}}
       </tbody>
@@ -163,6 +193,12 @@
       <p>{{encounter.aiNarrative.tactical_notes}}</p>
       <h4>Battle Map Setup</h4>
       <p>{{encounter.aiNarrative.battle_map_details}}</p>
+    </div>
+    {{!-- Share Narrative row — only shown when AI narrative is present. --}}
+    <div class="gmt-share-actions">
+      <button type="button" data-action="shareAINarrative">
+        <i class="fas fa-comment-alt"></i> Share Narrative
+      </button>
     </div>
     {{/if}}
 

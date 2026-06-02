@@ -1,30 +1,133 @@
-<div class="gmt-toolkit-sidebar-body">
-  <div class="gmt-toolkit-status" aria-live="polite">
-    <span class="gmt-status-pill {{#if dataReady}}ready{{else}}loading{{/if}}">
-      <i class="fas {{#if dataReady}}fa-check-circle{{else}}fa-spinner fa-spin{{/if}}"></i>
-      {{#if dataReady}}{{monsterCount}} Creatures{{else}}Indexing{{/if}}
-    </span>
+<div class="gmt-sidebar">
 
-    <span class="gmt-status-pill {{#if archetypeReady}}ready{{else}}loading{{/if}}">
-      <i class="fas {{#if archetypeReady}}fa-check-circle{{else}}fa-spinner fa-spin{{/if}}"></i>
-      {{#if archetypeReady}}{{archetypeCount}} Archetypes{{else}}Archetypes{{/if}}
-    </span>
-
-    <span class="gmt-status-pill {{#if aiEnabled}}ready{{else}}muted{{/if}}">
-      <i class="fas fa-magic"></i>
-      {{#if aiEnabled}}AI On{{else}}AI Off{{/if}}
-    </span>
+  {{!-- Zone 1: Context strip — party line and terrain selector --}}
+  <div class="gmt-context-strip">
+    <span class="gmt-party-line">{{partyLine}}</span>
+    <select name="terrain" data-action="changeTerrain">
+      {{#each terrainOptions}}
+        <option value="{{value}}" {{#if (eq value ../currentTerrain)}}selected{{/if}}>
+          {{label}}
+        </option>
+      {{/each}}
+    </select>
   </div>
 
-  <div class="gmt-toolkit-launch-list">
+  {{!-- Zone 2: Session history — compact, read-only, last 5 items --}}
+  {{#if sessionHistory.length}}
+  <div class="gmt-history">
+    {{#each sessionHistory}}
+    <div class="gmt-history-row">
+      <span class="gmt-history-icon">{{#if (eq type "encounter")}}⚔{{else}}👤{{/if}}</span>
+      <span class="gmt-history-name">{{name}}</span>
+      <button type="button" class="gmt-icon-btn" data-action="openHistoryItem"
+              data-index="{{displayIndex}}" title="Re-open">↗</button>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Zone 3: Wandering monster table — only shown when data is ready --}}
+  {{#if dataReady}}
+  <div class="gmt-wandering-section">
+    <div class="gmt-section-header">
+      <span>Wandering Monsters</span>
+      <div class="gmt-section-header-actions">
+        <button type="button" class="gmt-icon-btn" data-action="rollWandering"
+                title="Roll random wandering monster">🎲</button>
+        <button type="button" class="gmt-icon-btn" data-action="refreshTable"
+                title="Refresh all unlocked slots">↺</button>
+      </div>
+    </div>
+    {{#if wanderingTable.length}}
+    <table class="gmt-wandering-table">
+      <tbody>
+        {{#each wanderingTable}}
+        <tr class="{{#if rolled}}gmt-rolled{{/if}}">
+          <td class="gmt-die-num">{{dieNum}}</td>
+          <td class="gmt-monster-name">
+            {{#if monster}}
+            <button type="button" class="gmt-link-btn" data-action="placeWandering"
+              data-monster-id="{{monster._id}}" data-pack-id="{{monster.packId}}"
+              title="Place as hidden token on active scene">
+              {{monster.name}}
+            </button>
+            {{else}}
+            <span class="gmt-hint">—</span>
+            {{/if}}
+          </td>
+          <td class="gmt-lv">{{#if monster}}{{monster.level}}{{/if}}</td>
+          <td class="gmt-lock-col">
+            <button type="button" class="gmt-icon-btn" data-action="toggleLock"
+                    data-slot="{{@index}}"
+                    title="{{#if locked}}Unlock this slot{{else}}Lock this slot{{/if}}">
+              {{#if locked}}📌{{else}}🔓{{/if}}
+            </button>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{else}}
+    <p class="gmt-hint">Generating table…</p>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{!-- Zone 4: Hazard panel — only shown once the hazard index is ready --}}
+  {{#if hazardIndexReady}}
+  <div class="gmt-hazard-section">
+    <div class="gmt-section-header">
+      <span>Hazards &amp; Traps</span>
+      <button type="button" class="gmt-icon-btn" data-action="randomHazard"
+              title="Pick a random hazard from the current list">🎲</button>
+    </div>
+
+    <div class="gmt-hazard-filters">
+      <input type="text" name="hazardSearch" class="gmt-hazard-search"
+             placeholder="Search…" value="{{hazardSearchTerm}}"
+             data-action="hazardSearchInput">
+      <select name="hazardCategory" data-action="hazardCategoryChange">
+        <option value="">All</option>
+        {{#each hazardCategoryOptions}}
+          <option value="{{value}}" {{#if (eq value ../hazardFilter.category)}}selected{{/if}}>
+            {{label}}
+          </option>
+        {{/each}}
+      </select>
+    </div>
+
+    <div class="gmt-hazard-list">
+      {{#each hazardResults}}
+      <div class="gmt-hazard-row">
+        <div class="gmt-hazard-info">
+          <span class="gmt-hazard-name">{{name}}</span>
+          <span class="gmt-hazard-meta">Lv {{level}} · {{category}}</span>
+        </div>
+        <div class="gmt-hazard-actions">
+          <button type="button" class="gmt-icon-btn" data-action="describeHazard"
+            data-hazard-index="{{@index}}" title="Whisper description to GM">💬</button>
+          <button type="button" class="gmt-icon-btn" data-action="placeHazard"
+            data-hazard-id="{{_id}}" data-pack-id="{{packId}}"
+            title="Place on active scene (hidden)">📍</button>
+        </div>
+      </div>
+      {{else}}
+      <p class="gmt-hint">No hazards found. Try adjusting filters.</p>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Zone 5: Launch buttons (kept from Phase 1) --}}
+  <div class="gmt-launch-buttons">
     <button type="button" class="gmt-toolkit-launch" data-action="openEncounter">
       <i class="fas fa-swords"></i>
-      <span>Encounter Builder</span>
+      <span>Build Encounter</span>
     </button>
-
     <button type="button" class="gmt-toolkit-launch" data-action="openNPC">
-      <i class="fas fa-user-secret"></i>
-      <span>NPC Generator</span>
+      <i class="fas fa-user-plus"></i>
+      <span>Create NPC</span>
     </button>
   </div>
+
 </div>
