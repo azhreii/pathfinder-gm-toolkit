@@ -4,6 +4,23 @@
     <section class="gmt-section">
       <h3 class="gmt-section-title">Options</h3>
 
+      {{!-- NPC Purpose — drives occupation pool and archetype category pre-filter --}}
+      <div class="gmt-field">
+        <label for="npcPurpose">NPC Purpose</label>
+        <select name="npcPurpose" id="npcPurpose" data-action="changePurpose">
+          {{#each npcPurposeOptions}}
+            <option value="{{value}}" {{#if (eq value ../npcPurpose)}}selected{{/if}}>
+              {{label}}
+            </option>
+          {{/each}}
+        </select>
+        {{#unless (eq npcPurpose "any")}}
+          <p class="gmt-hint" style="margin-top:0.2rem;">
+            Occupation and archetype category pre-filtered for <em>{{npcPurposeLabel}}</em>.
+          </p>
+        {{/unless}}
+      </div>
+
       {{#if hasGeminiKey}}
         <div class="gmt-field gmt-checkbox">
           <label>

@@ -24,6 +24,8 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
       selectArchetype:       NPCGeneratorApp._onSelectArchetype,
       clearArchetype:        NPCGeneratorApp._onClearArchetype,
       applyArchetypeFilter:  NPCGeneratorApp._onApplyArchetypeFilter,
+      /* NPC Purpose — drives occupation pool and archetype category */
+      changePurpose:         NPCGeneratorApp._onChangePurpose,
       /* Merchant / shop system actions */
       enableMerchant:        NPCGeneratorApp._onEnableMerchant,
       clearMerchant:         NPCGeneratorApp._onClearMerchant,
@@ -59,6 +61,10 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
     this._shopType     = null;          // null = not a merchant
     this._wealthTier   = "standard";    // 'poor' | 'standard' | 'wealthy' | 'elite'
     this._locationSize = "town";        // 'village' | 'town' | 'city'
+
+    /* NPC Purpose — drives occupation pool and archetype category pre-filter.
+       null/'any' = no filter (current behaviour preserved). */
+    this._npcPurpose = "any";
   }
 
   async _prepareContext(_options) {
@@ -109,12 +115,23 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
       return { value: pair[0], label: pair[1] };
     });
 
+    /* NPC Purpose options — drive occupation pool and archetype category hint. */
+    var npcPurposeOptions = Object.entries(GMTOOLKIT.NPC_PURPOSES || {}).map(function (pair) {
+      return { value: pair[0], label: pair[1].label };
+    });
+    var currentPurpose = GMTOOLKIT.NPC_PURPOSES?.[this._npcPurpose] || null;
+
     return {
       npc:          this._lastNPC,
       isGenerating: this._isGenerating,
       hasResult:    !!this._lastNPC,
 
       hasGeminiKey: GMTOOLKIT.isAIEnabled(),
+
+      /* NPC Purpose */
+      npcPurpose:        this._npcPurpose,
+      npcPurposeOptions: npcPurposeOptions,
+      npcPurposeLabel:   currentPurpose ? currentPurpose.label : "Any",
 
       /* Archetype picker context fields. */
       detectedLevel:       detectedLevel,
@@ -145,6 +162,35 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
   _onRender(_context, _options) {
     var html = this.element;
     var app = this;
+
+    /* Purpose dropdown — data-action on a <select> fires on click, not change.
+       Wire a change listener manually so the occupation pool updates immediately. */
+    var purposeSelect = html.querySelector("[name='npcPurpose']");
+    if (purposeSelect) {
+      purposeSelect.addEventListener("change", function () {
+        var purposeKey = purposeSelect.value || "any";
+        var purposeDef = GMTOOLKIT.NPC_PURPOSES?.[purposeKey];
+
+        app._npcPurpose = purposeKey;
+
+        if (purposeDef && purposeDef.archetypeCategory) {
+          app._archetypeCategory = purposeDef.archetypeCategory;
+        } else {
+          app._archetypeCategory = "";
+        }
+
+        if (purposeDef && purposeDef.autoMerchant && !app._shopType) {
+          app._shopType = "general";
+        } else if ((!purposeDef || !purposeDef.autoMerchant) &&
+                   app._shopType === "general" && purposeKey !== "any") {
+          app._shopType = null;
+        }
+
+        app.render({ force: true });
+      });
+    }
+
+    /* Creature level input — re-render on change so archetype counts update. */
     var levelInput = html.querySelector("[name='creatureLevel']");
     if (levelInput) {
       levelInput.addEventListener("change", function () {
@@ -177,10 +223,14 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
 
     var npcNames = GMTOOLKIT._moduleData.npcNames;
 
+    /* Resolve occupation pool from the selected NPC purpose. */
+    var purposeDef = GMTOOLKIT.NPC_PURPOSES?.[app._npcPurpose];
+    var occupationPool = purposeDef?.occupations ?? null;
+
     app._isGenerating = true;
     await app.render({ force: true });
 
-    var npc = GMTOOLKIT.generateBasicNPC(npcNames);
+    var npc = GMTOOLKIT.generateBasicNPC(npcNames, occupationPool);
     if (!npc) {
       ui.notifications.error("NPC name data unavailable.");
       app._isGenerating = false;
@@ -244,6 +294,7 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
     app._shopType            = null;
     app._wealthTier          = "standard";
     app._locationSize        = "town";
+    /* Keep purpose selection — GM likely wants to generate another NPC of the same type. */
     await app.render({ force: true });
   }
 
@@ -504,6 +555,46 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
    * Defaults to 'general' if no keyword match is found.
    * Re-renders so the merchant controls section becomes visible.
    */
+
+  /* ------------------------------------------------------------------ */
+  /* NPC Purpose                                                          */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Handle NPC purpose dropdown change.
+   * Updates the occupation pool used by the next generation and pre-wires
+   * the archetype picker category to the purpose's suggested category.
+   * If the purpose is 'merchant', also triggers merchant mode.
+   */
+  static _onChangePurpose(event, target) {
+    var app = this;
+    var purposeKey = target.value || "any";
+    var purposeDef = GMTOOLKIT.NPC_PURPOSES?.[purposeKey];
+
+    app._npcPurpose = purposeKey;
+
+    /* Pre-set archetype category filter to match the purpose's suggestion.
+       Empty string means "All" which is the default for the "any" purpose. */
+    if (purposeDef && purposeDef.archetypeCategory) {
+      app._archetypeCategory = purposeDef.archetypeCategory;
+    } else {
+      app._archetypeCategory = "";
+    }
+
+    /* Merchant purpose: automatically enable merchant mode so the GM
+       doesn't need to click "Make Merchant" separately. */
+    if (purposeDef && purposeDef.autoMerchant && !app._shopType) {
+      app._shopType = "general"; /* default shop type; GM can change it */
+    } else if ((!purposeDef || !purposeDef.autoMerchant) && app._shopType &&
+               app._npcPurpose !== "any") {
+      /* Switching away from merchant purpose clears merchant mode
+         only if the GM hadn't manually customised it (still 'general'). */
+      if (app._shopType === "general") app._shopType = null;
+    }
+
+    app.render({ force: true });
+  }
+
   static async _onEnableMerchant(event, target) {
     var app = this;
     if (!app._lastNPC) return;

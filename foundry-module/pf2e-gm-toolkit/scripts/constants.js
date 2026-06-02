@@ -59,7 +59,79 @@ GMTOOLKIT.OCCUPATIONS = [
   "Bard", "Alchemist", "Healer", "Thief", "Noble",
   "Sailor", "Hunter", "Priest", "Scholar", "Carpenter",
   "Tailor", "Fisherman", "Miner", "Cook", "Apothecary",
+  /* Extended list — added for NPC purpose filtering */
+  "Mercenary", "Bounty Hunter", "Soldier", "Bodyguard", "Pit Fighter",
+  "Armorer", "Jeweler", "Weaponsmith", "Herbalist", "Provisioner",
+  "Smuggler", "Fence", "Spy", "Assassin", "Crime Lord",
+  "Diplomat", "Noble's Aide", "Tax Collector", "Magistrate",
+  "Acolyte", "Oracle", "Sage", "Scribe", "Archivist",
+  "Stablehand", "Dockworker", "Lumberjack", "Quarryman", "Street Vendor",
 ];
+
+/**
+ * NPC Purpose — drives occupation pool and archetype category pre-filter.
+ * Each entry: { label, occupations: string[], archetypeCategory: string|null,
+ *               autoMerchant: boolean }
+ * archetypeCategory must match keys used in actor-creator.js classification:
+ *   'Combatant' | 'Spellcaster' | 'Specialist' | 'Non-combatant' | null (= All)
+ */
+GMTOOLKIT.NPC_PURPOSES = {
+  any: {
+    label: "Any",
+    occupations: null,           /* null = use full OCCUPATIONS list */
+    archetypeCategory: null,
+    autoMerchant: false,
+  },
+  combat: {
+    label: "Combat / Guard",
+    occupations: ["Guard", "Mercenary", "Bounty Hunter", "Soldier", "Bodyguard",
+                  "Pit Fighter", "Hunter"],
+    archetypeCategory: "Combatant",
+    autoMerchant: false,
+  },
+  merchant: {
+    label: "Merchant / Trader",
+    occupations: ["Merchant", "Blacksmith", "Armorer", "Weaponsmith", "Alchemist",
+                  "Herbalist", "Apothecary", "Tailor", "Carpenter", "Cook",
+                  "Jeweler", "Innkeeper", "Provisioner", "Street Vendor"],
+    archetypeCategory: "Non-combatant",
+    autoMerchant: true,          /* triggers merchant mode automatically */
+  },
+  noble: {
+    label: "Noble / Political",
+    occupations: ["Noble", "Diplomat", "Noble's Aide", "Tax Collector", "Magistrate",
+                  "Bard"],
+    archetypeCategory: "Non-combatant",
+    autoMerchant: false,
+  },
+  scholar: {
+    label: "Scholar / Sage",
+    occupations: ["Scholar", "Sage", "Scribe", "Archivist", "Healer", "Alchemist",
+                  "Bard"],
+    archetypeCategory: "Specialist",
+    autoMerchant: false,
+  },
+  spiritual: {
+    label: "Spiritual / Clergy",
+    occupations: ["Priest", "Acolyte", "Oracle", "Healer"],
+    archetypeCategory: "Spellcaster",
+    autoMerchant: false,
+  },
+  criminal: {
+    label: "Criminal / Underworld",
+    occupations: ["Thief", "Smuggler", "Fence", "Spy", "Assassin", "Crime Lord",
+                  "Bounty Hunter"],
+    archetypeCategory: "Combatant",
+    autoMerchant: false,
+  },
+  commoner: {
+    label: "Commoner / Laborer",
+    occupations: ["Farmer", "Sailor", "Fisherman", "Miner", "Carpenter",
+                  "Stablehand", "Dockworker", "Lumberjack", "Quarryman", "Cook"],
+    archetypeCategory: "Non-combatant",
+    autoMerchant: false,
+  },
+};
 
 GMTOOLKIT.PERSONALITY_TRAITS = [
   "Brave", "Cautious", "Curious", "Friendly", "Grumpy",
