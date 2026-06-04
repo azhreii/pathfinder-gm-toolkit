@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.3.4] — 2026-06-04
+
+### Fixed
+- **Token images missing for module monsters** — switched token actor import from `actorDoc.toObject()` + `Actor.create()` to `game.actors.importFromCompendium()`. The previous path bypassed Foundry's internal `fromCompendium()` transformation, which is responsible for resolving module-relative artwork paths. Tokens placed from third-party bestiary modules now show their correct images.
+- **"Add to Combat" creates encounter that isn't visible** — added `combat.activate()` after creating a new combat encounter so it becomes the active encounter in the combat tracker. Previously the encounter was created silently and the GM had to manually click it in the encounters list.
+- **Deprecated `renderChatMessage` hook** — changed to `renderChatMessageHTML` (Foundry v13 requirement; backwards-compatible support ends in v15). The Share/Save buttons in GM whisper messages continue to work correctly.
+- **AI encounter narrative JSON truncation** — increased Gemini `maxOutputTokens` from 2048 to 4096 and added `responseMimeType: "application/json"` to force JSON-mode output. Eliminates the "Unterminated string" parse errors that caused AI narrative generation to silently fail.
+
+### Changed
+- **Sidebar redesigned — party/terrain at top** — the party level, party size, and terrain selector are now the first controls in the sidebar (above all tool sections), making it clear they govern everything below.
+- **All sidebar sections are now collapsible** — each section (Wandering Monsters, Hazards & Traps, Session History, Build Encounter, Create NPC) has a ▼/▶ caret that collapses or expands it. State is preserved across re-renders within the same session.
+- **Build Encounter and Create NPC are now sidebar sections** — instead of plain launch buttons, each tool has a dedicated collapsible panel. When expanded, the panel shows the most recent result from session history (with a quick re-open link) and a button to open the full builder/generator.
+
+---
+
 ## [0.3.3] — 2026-06-04
 
 ### Fixed

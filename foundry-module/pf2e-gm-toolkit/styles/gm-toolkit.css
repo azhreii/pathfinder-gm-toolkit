@@ -1027,3 +1027,95 @@
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--color-border-light-primary);
 }
+
+/* ---- Collapsible sidebar sections ---- */
+
+.gmt-collapsible-section {
+  padding: 0 0.4rem;
+  padding-bottom: 0.25rem;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  margin-bottom: 0.3rem;
+}
+
+/* Caret toggle button — appears at the left of every section header */
+.gmt-caret-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 18px;
+  min-height: 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: var(--font-size-10);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+
+.gmt-caret-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* Section header inside a collapsible section — override margin-bottom so
+   the caret + title sit flush against the section body when expanded. */
+.gmt-collapsible-section .gmt-section-header {
+  margin-bottom: 0;
+  padding: 0.25rem 0;
+  gap: 0.3rem;
+}
+
+/* Title span inside the section header — grows to fill available space */
+.gmt-collapsible-section .gmt-section-title {
+  flex: 1;
+  font-size: var(--font-size-12);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+/* Body of an expanded section — separator line and top padding */
+.gmt-section-body {
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--color-border-light-tertiary);
+  margin-top: 0.1rem;
+}
+
+/* Last encounter/NPC result row inside the Encounter/NPC sections */
+.gmt-last-result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+  font-size: var(--font-size-12);
+  margin-bottom: 0.3rem;
+}
+
+.gmt-last-result-row .gmt-history-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+/* Smaller variant of the launch button for inside section bodies */
+.gmt-launch-sm {
+  min-height: 28px;
+  font-size: var(--font-size-12);
+  margin-top: 0.2rem;
+}
+
+/* Wandering and hazard section bodies no longer need extra wrappers —
+   the collapsible section provides all needed padding/bg now. */
+.gmt-collapsible-section .gmt-wandering-table {
+  margin-top: 0.1rem;
+}
+
+.gmt-collapsible-section .gmt-hazard-filters {
+  margin-bottom: 0.3rem;
+}

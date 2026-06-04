@@ -676,27 +676,22 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
     });
 
     if (!worldActor) {
-      var actorDoc;
       try {
-        actorDoc = await pack.getDocument(creature.actorId);
-      } catch (err) {
-        console.warn("PF2e GM Toolkit | Could not load " + creature.name + ":", err);
-        continue;
-      }
-      if (!actorDoc) continue;
-
-      try {
-        /* toObject() is the v13-compatible way to get plain actor data from a
-           compendium document. fromCompendium() was deprecated and does not
-           correctly resolve token artwork paths in Foundry v13. */
-        var actorData = actorDoc.toObject();
-        actorData.folder = encounterFolder.id;
-        /* Store our own source-tracking flag so the lookup above can find this
-           actor on subsequent placements without touching core.sourceId. */
-        actorData.flags = actorData.flags || {};
-        actorData.flags["pf2e-gm-toolkit"] = actorData.flags["pf2e-gm-toolkit"] || {};
-        actorData.flags["pf2e-gm-toolkit"].sourceId = sourceId;
-        worldActor = await Actor.create(actorData, { renderSheet: false });
+        /* importFromCompendium is the v13-idiomatic import path — it calls the
+           static Actor.fromCompendium() transformation internally, which correctly
+           resolves token artwork paths (including module-hosted images) that a plain
+           toObject() + Actor.create() approach leaves as unresolved compendium refs. */
+        worldActor = await game.actors.importFromCompendium(
+          pack,
+          creature.actorId,
+          {
+            folder: encounterFolder.id,
+            flags: {
+              "pf2e-gm-toolkit": { sourceId: sourceId }
+            }
+          },
+          { renderSheet: false }
+        );
       } catch (err) {
         console.warn("PF2e GM Toolkit | Could not import " + creature.name + ":", err);
         continue;
@@ -755,6 +750,9 @@ GMTOOLKIT._addTokensToCombat = async function (tokenIds, scene) {
 
     if (!combat) {
       combat = await getDocumentClass("Combat").create({ scene: scene.id });
+      /* Activate the new combat so it becomes the visible encounter in the
+         tracker — without this the encounter exists but isn't shown to the GM. */
+      await combat.activate();
     }
 
     /* Build combatant entries.  PF2e's tracker needs actorId as well as tokenId

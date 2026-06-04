@@ -28,6 +28,8 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       openNPC:          GMToolkitSidebarTab._onOpenNPC,
       /* Zone 1 — terrain selector. */
       changeTerrain:    GMToolkitSidebarTab._onTerrainChange,
+      /* Collapsible sections. */
+      toggleSection:    GMToolkitSidebarTab._onToggleSection,
       /* Zone 2 — session history. */
       openHistoryItem:  GMToolkitSidebarTab._onOpenHistoryItem,
       /* Zone 3 — wandering table. */
@@ -66,6 +68,9 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     this._hazardResults   = [];     /* currently displayed hazard list (max 8) */
     this._hazardFilter    = { category: "" };
     this._hazardSearchTerm = "";
+
+    /* Collapsible section state — section names in this set are collapsed. */
+    this._collapsedSections = new Set();
   }
 
   /**
@@ -142,6 +147,19 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       displayIndex: i,
     }));
 
+    /* Last encounter/NPC entries for the inline Encounter and NPC sections. */
+    const lastEncounterEntry = sessionHistory.find((e) => e.type === "encounter") ?? null;
+    const lastNPCEntry       = sessionHistory.find((e) => e.type === "npc")       ?? null;
+
+    /* ---- Collapsible section state ---- */
+    const sections = {
+      wandering: !this._collapsedSections.has("wandering"),
+      hazards:   !this._collapsedSections.has("hazards"),
+      history:   !this._collapsedSections.has("history"),
+      encounter: !this._collapsedSections.has("encounter"),
+      npc:       !this._collapsedSections.has("npc"),
+    };
+
     /* ---- Zone 3: wandering table ---- */
     const wanderingTable = this._wanderingTable.map((entry, i) => ({
       monster: entry.monster,
@@ -171,6 +189,8 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       terrainOptions,
       /* Zone 2 */
       sessionHistory,
+      lastEncounterEntry,
+      lastNPCEntry,
       /* Zone 3 */
       wanderingTable,
       /* Zone 4 */
@@ -179,6 +199,8 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       hazardFilter:       this._hazardFilter,
       hazardSearchTerm:   this._hazardSearchTerm,
       hazardCategoryOptions,
+      /* Collapsible section expansion flags. */
+      sections,
       /* Legacy status fields kept for backward compat with any existing partials. */
       monsterCount:    moduleData?.monsterIndex?.length ?? 0,
       aiEnabled:       GMTOOLKIT.isAIEnabled(),
@@ -340,6 +362,20 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
 
   static _onOpenNPC(_event, _target) {
     GMToolkitSidebarTab._openOrFocus("pf2e-gm-toolkit-npc", NPCGeneratorApp);
+  }
+
+  /* ---- Collapsible sections ---- */
+
+  static _onToggleSection(event, target) {
+    const app     = this;
+    const section = target.dataset.section;
+    if (!section) return;
+    if (app._collapsedSections.has(section)) {
+      app._collapsedSections.delete(section);
+    } else {
+      app._collapsedSections.add(section);
+    }
+    app.render({ force: true });
   }
 
   /* ---- Zone 1: terrain / party inputs handled by _onRender listeners ---- */

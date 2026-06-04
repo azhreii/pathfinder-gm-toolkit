@@ -285,14 +285,13 @@ async function _gmShareGetFolder() {
  *   Placeholder wired for future deferred-save UI; currently disabled because
  *   shareContent saves at generation time.
  */
-Hooks.on("renderChatMessage", function (message, html, _data) {
+Hooks.on("renderChatMessageHTML", function (message, html) {
   /* Only process messages we created — checked via flag. */
   const isGMTShare = message.getFlag("pf2e-gm-toolkit", "isShareMessage");
   if (!isGMTShare) return;
 
-  /* In Foundry v13 the hook receives an HTMLElement, not a jQuery object.
-     Normalise so querySelector always works. */
-  const el = html instanceof HTMLElement ? html : html[0];
+  /* renderChatMessageHTML always passes an HTMLElement in v13+. */
+  const el = html;
   if (!el) return;
 
   /* Wire "Share with players" button. */
