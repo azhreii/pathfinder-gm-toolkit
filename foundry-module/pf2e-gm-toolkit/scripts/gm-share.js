@@ -234,10 +234,11 @@ GMTOOLKIT.shareContent = async function (options) {
   try {
     await ChatMessage.create({
       content: whisperHTML,
+      /* Whisper recipients: just populate the whisper array.
+         In Foundry v12+ the `type` field for chat messages was removed/renamed;
+         setting type:"whisper" causes a validation error in PF2e's ChatMessagePF2e
+         subclass. The whisper array alone is sufficient to restrict visibility. */
       whisper: [game.user.id],
-      /* CONST.CHAT_MESSAGE_TYPES.WHISPER may not exist in all v13 builds;
-         use the string form as a safe fallback. */
-      type: (CONST.CHAT_MESSAGE_TYPES && CONST.CHAT_MESSAGE_TYPES.WHISPER) || "whisper",
       speaker: { alias: "GM Toolkit" },
       flags: { "pf2e-gm-toolkit": { isShareMessage: true } },
     });
