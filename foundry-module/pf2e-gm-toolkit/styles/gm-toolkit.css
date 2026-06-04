@@ -931,3 +931,99 @@
   margin-top: auto;   /* push to bottom of flex column */
   padding-top: 0.3rem;
 }
+
+/* ---- Context strip: party (editable) + terrain (full-width) ---- */
+
+.gmt-context-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
+  background: var(--color-bg-option);
+}
+
+.gmt-party-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gmt-party-label {
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.gmt-party-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.gmt-party-field {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: var(--font-size-13);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.gmt-party-input {
+  width: 42px;
+  height: 26px;
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  text-align: center;
+  padding: 0 0.2rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+}
+
+.gmt-party-detected {
+  font-size: 8px;
+  color: #4caf50;
+  opacity: 0.8;
+  title: "Auto-detected";
+}
+
+/* Terrain strip — full width */
+.gmt-terrain-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.gmt-terrain-label {
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  min-width: 48px;
+}
+
+.gmt-terrain-select {
+  flex: 1;
+  width: 100%;
+  height: 28px;
+  font-size: var(--font-size-12);
+  padding: 0 0.4rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 3px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+/* Move launch buttons to top — no longer needs margin-top: auto */
+.gmt-launch-buttons {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}

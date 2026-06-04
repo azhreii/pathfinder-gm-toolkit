@@ -686,10 +686,10 @@ GMTOOLKIT.placeEncounterTokens = async function (summary, options) {
       if (!actorDoc) continue;
 
       try {
-        /* fromCompendium() is the canonical way to prepare compendium data for
-           world use — it resolves token image paths, strips entry metadata, and
-           handles system-specific field transformations (e.g. PF2e token art). */
-        var actorData = game.actors.fromCompendium(actorDoc);
+        /* toObject() is the v13-compatible way to get plain actor data from a
+           compendium document. fromCompendium() was deprecated and does not
+           correctly resolve token artwork paths in Foundry v13. */
+        var actorData = actorDoc.toObject();
         actorData.folder = encounterFolder.id;
         /* Store our own source-tracking flag so the lookup above can find this
            actor on subsequent placements without touching core.sourceId. */

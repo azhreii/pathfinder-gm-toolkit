@@ -514,6 +514,15 @@ class NPCGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixi
         /* Open the sheet so the GM can inspect and refine immediately. */
         if (actor.sheet) actor.sheet.render(true);
 
+        /* Auto-save NPC to journal whenever an actor is created so there is
+           always a written record — the GM doesn't need to manually click Save. */
+        try {
+          await GMTOOLKIT.saveNPCToJournal(app._lastNPC);
+        } catch (journalErr) {
+          /* Non-critical — actor already exists, journal is just a convenience. */
+          console.warn("PF2e GM Toolkit | Auto journal save failed:", journalErr);
+        }
+
         /* ---- Step 5: Write AI flavor text into biography (existing behaviour) ----
            Route through shareContent so save logic stays in one place.
            Guard against gm-share.js not being loaded (load-order safety). */

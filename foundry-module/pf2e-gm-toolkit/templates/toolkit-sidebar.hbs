@@ -1,15 +1,49 @@
 <div class="gmt-sidebar">
 
-  {{!-- Zone 1: Context strip — party line and terrain selector --}}
+  {{!-- Zone 0: Launch buttons — top of sidebar for quick access --}}
+  <div class="gmt-launch-buttons">
+    <button type="button" class="gmt-toolkit-launch" data-action="openEncounter">
+      <i class="fas fa-swords"></i>
+      <span>Build Encounter</span>
+    </button>
+    <button type="button" class="gmt-toolkit-launch" data-action="openNPC">
+      <i class="fas fa-user-plus"></i>
+      <span>Create NPC</span>
+    </button>
+  </div>
+
+  {{!-- Zone 1: Context strip — party (editable) + terrain (full-width) --}}
   <div class="gmt-context-strip">
-    <span class="gmt-party-line">{{partyLine}}</span>
-    <select name="terrain" data-action="changeTerrain">
-      {{#each terrainOptions}}
-        <option value="{{value}}" {{#if (eq value ../currentTerrain)}}selected{{/if}}>
-          {{label}}
-        </option>
-      {{/each}}
-    </select>
+    <div class="gmt-party-strip">
+      <span class="gmt-party-label">Party</span>
+      <div class="gmt-party-inputs">
+        <label class="gmt-party-field">
+          <span>Lv</span>
+          <input type="number" name="partyLevelOverride" class="gmt-party-input"
+                 min="1" max="20" value="{{effectivePartyLevel}}"
+                 title="Party level — edit to override">
+        </label>
+        <label class="gmt-party-field">
+          <span>×</span>
+          <input type="number" name="partySizeOverride" class="gmt-party-input"
+                 min="1" max="8" value="{{effectivePartySize}}"
+                 title="Party size — edit to override">
+        </label>
+        {{#if partyDetected}}
+          <span class="gmt-party-detected" title="Auto-detected from connected players">●</span>
+        {{/if}}
+      </div>
+    </div>
+    <div class="gmt-terrain-strip">
+      <label class="gmt-terrain-label" for="gmt-terrain-select">Terrain</label>
+      <select id="gmt-terrain-select" name="terrain" class="gmt-terrain-select">
+        {{#each terrainOptions}}
+          <option value="{{value}}" {{#if (eq value ../currentTerrain)}}selected{{/if}}>
+            {{label}}
+          </option>
+        {{/each}}
+      </select>
+    </div>
   </div>
 
   {{!-- Zone 2: Session history — compact, read-only, last 5 items --}}
@@ -83,10 +117,10 @@
     </div>
 
     <div class="gmt-hazard-filters">
+      {{!-- No data-action on inputs — change listeners wired in _onRender --}}
       <input type="text" name="hazardSearch" class="gmt-hazard-search"
-             placeholder="Search…" value="{{hazardSearchTerm}}"
-             data-action="hazardSearchInput">
-      <select name="hazardCategory" data-action="hazardCategoryChange">
+             placeholder="Search…" value="{{hazardSearchTerm}}">
+      <select name="hazardCategory" class="gmt-hazard-cat-select">
         <option value="">All</option>
         {{#each hazardCategoryOptions}}
           <option value="{{value}}" {{#if (eq value ../hazardFilter.category)}}selected{{/if}}>
@@ -117,17 +151,5 @@
     </div>
   </div>
   {{/if}}
-
-  {{!-- Zone 5: Launch buttons (kept from Phase 1) --}}
-  <div class="gmt-launch-buttons">
-    <button type="button" class="gmt-toolkit-launch" data-action="openEncounter">
-      <i class="fas fa-swords"></i>
-      <span>Build Encounter</span>
-    </button>
-    <button type="button" class="gmt-toolkit-launch" data-action="openNPC">
-      <i class="fas fa-user-plus"></i>
-      <span>Create NPC</span>
-    </button>
-  </div>
 
 </div>

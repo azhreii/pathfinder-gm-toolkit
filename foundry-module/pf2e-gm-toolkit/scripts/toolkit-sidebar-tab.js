@@ -36,11 +36,12 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       toggleLock:       GMToolkitSidebarTab._onToggleLock,
       placeWandering:   GMToolkitSidebarTab._onPlaceWandering,
       /* Zone 4 — hazard panel. */
-      randomHazard:           GMToolkitSidebarTab._onRandomHazard,
-      describeHazard:         GMToolkitSidebarTab._onDescribeHazard,
-      placeHazard:            GMToolkitSidebarTab._onPlaceHazard,
-      hazardSearchInput:      GMToolkitSidebarTab._onHazardSearch,
-      hazardCategoryChange:   GMToolkitSidebarTab._onHazardCategory,
+      /* Note: hazardSearch and hazardCategory are handled by _onRender change
+         listeners, not data-action, because data-action fires on click (which
+         would re-render the app and close the dropdown before a value is chosen). */
+      randomHazard:   GMToolkitSidebarTab._onRandomHazard,
+      describeHazard: GMToolkitSidebarTab._onDescribeHazard,
+      placeHazard:    GMToolkitSidebarTab._onPlaceHazard,
     },
   };
 
@@ -52,6 +53,9 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
 
   constructor(options = {}) {
     super(options);
+
+    /* Zone 1 — party override (null = use auto-detected value). */
+    this._partyOverride = { partyLevel: null, partySize: null };
 
     /* Zone 3 — wandering table state. */
     this._wanderingTable  = [];     /* array of 6 { monster, locked } entries */
@@ -118,10 +122,11 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     }
 
     /* ---- Zone 1: party + terrain ---- */
-    const party = GMTOOLKIT.detectParty?.() ?? { partyLevel: null, partySize: null };
-    const partyLine = (party.partyLevel && party.partySize)
-      ? `Party: ${party.partySize} × Lv ${party.partyLevel}`
-      : "Party: not detected";
+    const detectedParty = GMTOOLKIT.detectParty?.() ?? { partyLevel: null, partySize: null };
+    /* Override wins; fall back to detected; fall back to sensible defaults. */
+    const effectivePartyLevel = this._partyOverride.partyLevel ?? detectedParty.partyLevel ?? 5;
+    const effectivePartySize  = this._partyOverride.partySize  ?? detectedParty.partySize  ?? 4;
+    const partyDetected = !!(detectedParty.partyLevel && detectedParty.partySize);
 
     const currentTerrain = GMTOOLKIT._currentTerrain ?? "any";
 
@@ -159,7 +164,9 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
       /* Meta */
       dataReady:       !!moduleData,
       /* Zone 1 */
-      partyLine,
+      effectivePartyLevel,
+      effectivePartySize,
+      partyDetected,
       currentTerrain,
       terrainOptions,
       /* Zone 2 */
@@ -178,6 +185,70 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     };
   }
 
+  /**
+   * Wire change listeners for all interactive form elements after each render.
+   * We use native `change` / `input` events instead of data-action on selects
+   * because ApplicationV2 fires data-action handlers on `click`, which triggers
+   * immediately when the user clicks to OPEN a <select>, causing the app to
+   * re-render and close the dropdown before the user can choose an option.
+   */
+  _onRender(_context, _options) {
+    const html = this.element;
+    const app  = this;
+
+    /* Terrain selector — update canonical state and regenerate wandering table. */
+    const terrainSel = html.querySelector("[name='terrain']");
+    if (terrainSel) {
+      terrainSel.addEventListener("change", function () {
+        GMTOOLKIT._currentTerrain = terrainSel.value;
+        app._regenerateWanderingTable();
+        app.render({ force: true });
+      });
+    }
+
+    /* Party level override input. */
+    const lvlInput = html.querySelector("[name='partyLevelOverride']");
+    if (lvlInput) {
+      lvlInput.addEventListener("change", function () {
+        const v = parseInt(lvlInput.value, 10);
+        app._partyOverride.partyLevel = (!isNaN(v) && v >= 1 && v <= 20) ? v : null;
+        /* Regenerate wandering table since level band changed. */
+        app._regenerateWanderingTable();
+        app.render({ force: true });
+      });
+    }
+
+    /* Party size override input. */
+    const sizeInput = html.querySelector("[name='partySizeOverride']");
+    if (sizeInput) {
+      sizeInput.addEventListener("change", function () {
+        const v = parseInt(sizeInput.value, 10);
+        app._partyOverride.partySize = (!isNaN(v) && v >= 1 && v <= 8) ? v : null;
+        app.render({ force: true });
+      });
+    }
+
+    /* Hazard search input — live filter on every keystroke. */
+    const hazardSearch = html.querySelector("[name='hazardSearch']");
+    if (hazardSearch) {
+      hazardSearch.addEventListener("input", function () {
+        app._hazardSearchTerm = hazardSearch.value || "";
+        app._rebuildHazardResults();
+        app.render({ force: true });
+      });
+    }
+
+    /* Hazard category dropdown. */
+    const hazardCat = html.querySelector("[name='hazardCategory']");
+    if (hazardCat) {
+      hazardCat.addEventListener("change", function () {
+        app._hazardFilter = { ...app._hazardFilter, category: hazardCat.value || "" };
+        app._rebuildHazardResults();
+        app.render({ force: true });
+      });
+    }
+  }
+
   /* ============================================================
    * Internal helpers
    * ============================================================ */
@@ -191,8 +262,9 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     if (!GMTOOLKIT._moduleData) return;
 
     const { monsterIndex, terrainMapping } = GMTOOLKIT._moduleData;
-    const party       = GMTOOLKIT.detectParty?.() ?? { partyLevel: null };
-    const partyLevel  = party.partyLevel ?? 5;   /* sensible default if party not detected */
+    const detected   = GMTOOLKIT.detectParty?.() ?? { partyLevel: null };
+    /* Use sidebar override if set, otherwise detected, otherwise default. */
+    const partyLevel = this._partyOverride.partyLevel ?? detected.partyLevel ?? 5;
     const terrain     = GMTOOLKIT._currentTerrain ?? "any";
 
     /* Build a fresh table, passing the existing table so locked slots survive. */
@@ -270,21 +342,8 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     GMToolkitSidebarTab._openOrFocus("pf2e-gm-toolkit-npc", NPCGeneratorApp);
   }
 
-  /* ---- Zone 1: terrain change ---- */
-
-  static _onTerrainChange(event, target) {
-    /* `this` is the app instance via ApplicationV2 action binding. */
-    const app = this;
-
-    /* Update the canonical terrain state read by all other tools. */
-    GMTOOLKIT._currentTerrain = target.value;
-
-    /* Regenerate the wandering table immediately — terrain change invalidates
-       all unlocked slots. Locked slots are preserved by _regenerateWanderingTable. */
-    app._regenerateWanderingTable();
-
-    app.render({ force: true });
-  }
+  /* ---- Zone 1: terrain / party inputs handled by _onRender listeners ---- */
+  /* (No static action handlers needed — all wired via native change events.) */
 
   /* ---- Zone 2: session history ---- */
 
@@ -506,17 +565,6 @@ class GMToolkitSidebarTab extends foundry.applications.api.HandlebarsApplication
     }
   }
 
-  static _onHazardSearch(event, target) {
-    const app = this;
-    app._hazardSearchTerm = target.value || "";
-    app._rebuildHazardResults();
-    app.render({ force: true });
-  }
-
-  static _onHazardCategory(event, target) {
-    const app = this;
-    app._hazardFilter = { ...app._hazardFilter, category: target.value || "" };
-    app._rebuildHazardResults();
-    app.render({ force: true });
-  }
+  /* _onHazardSearch and _onHazardCategory removed — logic moved to _onRender
+     native change/input listeners to prevent re-render on dropdown open. */
 }
