@@ -1,6 +1,6 @@
 # PF2e GM Toolkit
 
-A Foundry VTT module for Pathfinder 2e Game Masters. Generate terrain-aware encounters and richly detailed NPCs directly inside Foundry — tokens placed on your canvas, actors created in your world, stat blocks one click away.
+A Foundry VTT module for Pathfinder 2e Game Masters. Generate terrain-aware encounters and richly detailed NPCs directly inside Foundry — tokens placed on your canvas, actors in your world, a live sidebar cockpit for in-session play.
 
 Built for two situations: the GM who wants to plan carefully the night before a session, and the GM who needs a wandering monster encounter or a quick shopkeeper NPC in the next 30 seconds because the party just did something unexpected.
 
@@ -16,22 +16,33 @@ Built for two situations: the GM who wants to plan carefully the night before a 
 
 ## Features
 
+### Sidebar Cockpit (In-Session Tools)
+
+The GM Toolkit sidebar tab is a live cockpit for active play — no windows to open, everything one click away.
+
+- **Party strip** — shows detected party level and size at all times; edit the fields directly to override auto-detection
+- **Terrain selector** — full-width dropdown that sets the canonical terrain for all tools at once; auto-reads from scene metadata on load
+- **Session history** — last 5 encounters and NPCs generated this session, compact rows, click to reopen
+- **Wandering monster table** — 6 terrain-aware creatures ready before you need them; 🎲 to roll randomly, 📌 to lock a slot across refreshes, click any name to place a hidden token immediately
+- **Hazard & trap panel** — browse the PF2e hazard compendium filtered by level and terrain; 🎲 for random, 💬 to whisper the trap description to yourself, 📍 to place a hidden token and open the stat block
+
 ### Encounter Builder
 
 - Generates terrain-filtered encounters using PF2e's official XP budget rules
-- Reads party level and size directly from your connected players — no manual entry needed
-- Terrain pre-selects from scene metadata when available; always manually adjustable
+- Reads party level and size directly from connected players — no manual entry needed
 - Seven encounter templates (Boss and Lackeys, Mook Squad, Elite Enemies, and more) plus random and custom difficulty modes
-- Places tokens on the active scene hidden from players with one click
-- Optionally adds tokens directly to the combat tracker
+- **Boss pinning** — pin any creature as the boss; the system fills the remaining XP budget with creatures that share meaningful traits with the boss; locked boss survives every re-generate
+- Places tokens on the active scene hidden from players with one click; optionally adds them to the combat tracker
 - Click any creature name to open its compendium stat block
 
 ### NPC Generator
 
-- Generates named NPCs with race, occupation, personality, and flavor details
-- Archetype picker lets you choose a compendium NPC as the mechanical base — your generated character gets a real PF2e stat block
-- Creates an actual Foundry Actor in your world, not just a text summary
-- Creature level defaults to your party's average level with manual override
+- **Purpose selector** — choose the type of NPC before generating (Combat/Guard, Merchant/Trader, Scholar/Sage, Noble/Political, Spiritual/Clergy, Criminal, Commoner/Laborer, or Any); filters the occupation draw and pre-wires the archetype category
+- Generates named NPCs with race, sex, occupation, and personality trait
+- **Archetype picker** — browse compendium NPCs as the mechanical base, sorted with NPC Gallery entries (purpose-built humanoid archetypes) above bestiary entries; source badge on every entry; dynamic level-to-role guidance
+- Creature level defaults to party average; accepts −1 and 0 for commoner-level NPCs
+- Creates an actual Foundry Actor in your world — not just a text summary
+- **Merchant mode** — when Purpose is set to Merchant/Trader (or manually enabled), generates shop inventory from the equipment compendium filtered by shop type, wealth tier, and location size; actor inventory is populated on creation
 
 ### AI Narrative Enhancement (Optional)
 
@@ -43,9 +54,16 @@ Supported providers:
 - Mistral
 - Any OpenAI-compatible endpoint (local models via Ollama, Groq, etc.)
 
-When enabled, AI adds vivid setting descriptions, encounter hooks, tactical notes, and battle map setup suggestions to encounters — and fills in appearance, motivation, secrets, and a signature quote for NPCs.
+When enabled, AI adds vivid setting descriptions, encounter hooks, tactical notes, and battle map setup suggestions to encounters — and fills in appearance, motivation, secrets, and a signature quote for NPCs. Merchants get an AI-generated specialty item with a unique description.
 
 The module works completely without AI configured. AI enhances; it never gates.
+
+### GM Share & Save
+
+- **Share Narrative** button on AI-enhanced results whispers the full content to you in chat
+- One click to share a player-safe subset publicly (setting description and hook for encounters; appearance, personality, and quote for NPCs — secrets and tactical notes stay GM-only)
+- Encounter and NPC results save to journal entries automatically; NPC journal is created whenever you create an actor, no separate step required
+- Hazard descriptions can be whispered to you and optionally shared with players when they detect the trap
 
 ### World Context (Coming in Phase 3)
 
@@ -71,7 +89,7 @@ Paste the manifest URL into Foundry's **Install Module** dialog → **Install**.
 
 1. Enable the module in your world's **Module Management**
 2. Open **Module Settings → PF2e GM Toolkit** to configure your AI provider (optional)
-3. The **GM Toolkit sidebar tab** appears in Foundry's right sidebar (GM only)
+3. The **GM Toolkit sidebar tab** (🎲 icon) appears in Foundry's right sidebar — visible to GMs only
 
 ### AI Configuration
 
@@ -83,20 +101,36 @@ If you leave the provider set to Disabled, all generation works without AI — n
 
 ## Usage
 
-### Generating an Encounter
+### In-Session: Wandering Monsters
 
-1. Open a scene with your players connected
-2. Open the **GM Toolkit sidebar tab** and click **Encounter Builder**
-3. Party level and size are auto-detected — adjust if needed
-4. Select terrain, generation mode, and hit **Generate Encounter**
-5. Review the creature list, then click **Place Tokens** — tokens appear on the canvas, hidden from players
+1. The sidebar wandering monster table pre-populates from the active scene's terrain automatically
+2. Change the **Terrain** dropdown to reload all unlocked slots for the new terrain
+3. Click 🎲 to roll a random entry, or just click any creature name to place it as a hidden token
+4. 📌 Lock a slot to keep that creature across terrain changes and refreshes
 
-### Generating an NPC
+### In-Session: Hazards and Traps
 
-1. Open the **GM Toolkit sidebar tab** and click **NPC Generator**
-2. Hit **Generate NPC**
-3. Optionally browse the **Archetype** picker to give the NPC a real stat block base
-4. Click **Create Actor** — the actor appears in your world and opens for review
+1. The hazard panel shows level-appropriate traps for the current party level
+2. Search by name or filter by category (Trap / Environmental / Magical)
+3. Click 💬 to whisper the trap's description, trigger, and disable DC to yourself
+4. Click 📍 to place a hidden token on the scene and open the stat block simultaneously
+
+### Planning: Building an Encounter
+
+1. Click **Build Encounter** in the sidebar
+2. Party level and size are auto-detected — edit in the sidebar or the encounter form
+3. Select terrain, generation mode, and click **Generate Encounter**
+4. Optionally pin a creature as boss — the table re-fills with trait-matched supporters
+5. Click **Place Tokens** — tokens appear hidden on the canvas, positioned in a spiral
+
+### Planning: Generating an NPC
+
+1. Click **Create NPC** in the sidebar
+2. Choose a **Purpose** (e.g., Merchant/Trader for a shopkeeper) — this pre-filters occupations and the archetype picker
+3. Set creature level and click **Generate NPC**
+4. Browse **Archetypes** to choose a compendium NPC as the mechanical base (NPC Gallery entries appear first)
+5. For merchants: adjust shop type, wealth tier, and location size; inventory is populated automatically
+6. Click **Create Actor** — the actor opens for review, and a journal entry is saved automatically
 
 ---
 
@@ -118,7 +152,7 @@ See [LICENSE](LICENSE) for the full terms. Source code is made available for rev
 |-------|--------|--------------|
 | Phase 0 — Walking skeleton | ✅ Complete | Basic generation, compendium indexing, journal persistence |
 | Phase 1 — Foundry integration | ✅ Complete | Tokens, actors, party detection, multi-LLM, dynamic model picker, dedicated sidebar tab |
-| Phase 2 — NPC depth + shops + sidebar | 🔜 Next | Boss pinning, archetype picker improvements, merchant inventory, in-session sidebar cockpit (wandering monsters, hazard placement, session history) |
+| Phase 2 — NPC depth + shops + sidebar | ✅ Complete | Boss pinning, archetype picker improvements, NPC Purpose selector, merchant inventory, in-session sidebar cockpit, AI share/save infrastructure |
 | Phase 3 — World config | Planned | Custom ancestries, world lore, AI context injection |
 | Phase 4 — Regional system | Planned | Named regions, scene-to-region mapping |
 | Phase 5 — Polish + launch | Planned | Keyboard shortcuts, esbuild bundle, Sentry, Forge listing |
