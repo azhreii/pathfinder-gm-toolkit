@@ -4,6 +4,23 @@
     <section class="gmt-section">
       <h3 class="gmt-section-title">Options</h3>
 
+      {{!-- NPC Purpose — drives occupation pool and archetype category pre-filter --}}
+      <div class="gmt-field">
+        <label for="npcPurpose">NPC Purpose</label>
+        <select name="npcPurpose" id="npcPurpose" data-action="changePurpose">
+          {{#each npcPurposeOptions}}
+            <option value="{{value}}" {{#if (eq value ../npcPurpose)}}selected{{/if}}>
+              {{label}}
+            </option>
+          {{/each}}
+        </select>
+        {{#unless (eq npcPurpose "any")}}
+          <p class="gmt-hint" style="margin-top:0.2rem;">
+            Occupation and archetype category pre-filtered for <em>{{npcPurposeLabel}}</em>.
+          </p>
+        {{/unless}}
+      </div>
+
       {{#if hasGeminiKey}}
         <div class="gmt-field gmt-checkbox">
           <label>
@@ -17,16 +34,19 @@
       {{/if}}
 
       {{!-- Creature level for archetype matching. Shows (auto-detected) when
-            the value is coming from the party rather than a manual override. --}}
+            the value is coming from the party rather than a manual override.
+            Min is -1 because PF2e uses -1 and 0 for ordinary commoners. --}}
       <div class="gmt-field gmt-row" style="align-items:center; gap:0.5rem; margin-top:0.35rem;">
         <label style="font-size:var(--font-size-12); font-weight:500; color:var(--color-text-secondary); white-space:nowrap;">
           Creature Level
           {{#if usingDetected}}<span class="gmt-detected">(auto-detected)</span>{{/if}}
         </label>
-        <input type="number" name="creatureLevel" min="1" max="20"
+        <input type="number" name="creatureLevel" min="-1" max="20"
                value="{{effectiveLevel}}"
                style="width:60px; height:26px; padding:0 0.3rem;">
       </div>
+      {{!-- Dynamic role hint — updates whenever effectiveLevel changes. --}}
+      <p class="gmt-hint gmt-level-role">Level {{effectiveLevel}}: {{levelRole}}</p>
     </section>
 
     <div class="gmt-actions">
@@ -80,6 +100,12 @@
     </dl>
 
     <div class="gmt-result-actions">
+      {{!-- Share NPC Details — only available when AI enhancement was applied. --}}
+      {{#if npc.aiEnhanced}}
+      <button type="button" data-action="shareNPCNarrative">
+        <i class="fas fa-comment-alt"></i> Share NPC Details
+      </button>
+      {{/if}}
       <button type="button" data-action="saveJournal">
         <i class="fas fa-book"></i> Save to Journal
       </button>
@@ -128,7 +154,15 @@
         <button type="button" class="gmt-archetype-entry" data-action="selectArchetype"
           data-pack-id="{{packId}}" data-actor-id="{{actorId}}" data-name="{{name}}">
           <span class="gmt-arch-name">{{name}}</span>
-          <span class="gmt-arch-meta">Lvl {{level}} · {{category}}</span>
+          <span class="gmt-arch-right">
+            {{!-- Source badge: NPC Gallery gets a highlighted pill; bestiary gets a muted one. --}}
+            {{#if (eq source "npc-gallery")}}
+              <span class="source-badge npc-gallery">NPC Gallery</span>
+            {{else}}
+              <span class="source-badge bestiary">Bestiary</span>
+            {{/if}}
+            <span class="gmt-arch-meta">Lvl {{level}} · {{category}}</span>
+          </span>
         </button>
         {{else}}
         <p class="gmt-hint" style="padding:0.5rem;">
@@ -142,9 +176,61 @@
     <div class="gmt-result-actions">
       <button type="button" data-action="createActor">
         <i class="fas fa-user-plus"></i>
-        {{#if selectedArchetype}}Create Actor (with archetype){{else}}Create Actor (no stats){{/if}}
+        {{#if shopType}}
+          Create Actor + Generate Inventory
+        {{else}}
+          {{#if selectedArchetype}}Create Actor (with archetype){{else}}Create Actor (no stats){{/if}}
+        {{/if}}
       </button>
     </div>
+  </section>
+
+  {{!-- ---- Merchant section — optional shop inventory generation ---- --}}
+  <section class="gmt-section gmt-merchant-section">
+    <h3 class="gmt-section-title">Merchant (Optional)</h3>
+
+    {{#if shopType}}
+      {{!-- Merchant mode active: show shop configuration controls. --}}
+      <div class="gmt-merchant-controls">
+        <div class="gmt-field">
+          <label>Shop Type</label>
+          {{!-- data-action fires _onShopTypeChange so the app state stays in sync
+               without needing a separate form-submit step. --}}
+          <select name="shopType" data-action="shopTypeChange">
+            {{#each shopTypeOptions}}
+              <option value="{{value}}" {{#if (eq value ../shopType)}}selected{{/if}}>
+                {{label}}
+              </option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="gmt-field">
+          <label>Wealth Tier</label>
+          <select name="wealthTier">
+            <option value="poor"     {{#if (eq ../wealthTier "poor")}}selected{{/if}}>Poor (lv -2)</option>
+            <option value="standard" {{#if (eq ../wealthTier "standard")}}selected{{/if}}>Standard (lv ±0)</option>
+            <option value="wealthy"  {{#if (eq ../wealthTier "wealthy")}}selected{{/if}}>Wealthy (lv +1)</option>
+            <option value="elite"    {{#if (eq ../wealthTier "elite")}}selected{{/if}}>Elite (lv +2)</option>
+          </select>
+        </div>
+        <div class="gmt-field">
+          <label>Location Size</label>
+          <select name="locationSize">
+            <option value="village" {{#if (eq ../locationSize "village")}}selected{{/if}}>Village (8-10 items)</option>
+            <option value="town"    {{#if (eq ../locationSize "town")}}selected{{/if}}>Town (12-15 items)</option>
+            <option value="city"    {{#if (eq ../locationSize "city")}}selected{{/if}}>City (18-22 items)</option>
+          </select>
+        </div>
+        <button type="button" data-action="clearMerchant" class="gmt-secondary">
+          <i class="fas fa-times"></i> Remove Merchant
+        </button>
+      </div>
+    {{else}}
+      {{!-- Merchant mode inactive: show the activation button. --}}
+      <button type="button" data-action="enableMerchant">
+        <i class="fas fa-store"></i> Make Merchant
+      </button>
+    {{/if}}
   </section>
   {{/if}}
 </div>

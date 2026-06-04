@@ -93,6 +93,18 @@ GMTOOLKIT.buildArchetypeIndex = async function () {
           ? entry.system.traits.value
           : [];
 
+        /* Only include humanoid creatures — filters out animals, undead, elementals,
+           and other monsters that are not useful as NPC mechanical bases. */
+        if (!traits.includes("humanoid")) continue;
+
+        /* Classify the source pack so the picker can badge and sort entries.
+           PF2e NPC Gallery packs have "npc-gallery" in their collection ID
+           (e.g. "pf2e.npc-gallery"). Everything else is treated as "bestiary"
+           — this covers pathfinder-bestiary, pathfinder-bestiary-2, etc. */
+        var source = pack.collection.indexOf("npc-gallery") !== -1
+          ? "npc-gallery"
+          : "bestiary";
+
         archetypes.push({
           packId:   pack.collection,
           actorId:  entry._id,
@@ -100,6 +112,7 @@ GMTOOLKIT.buildArchetypeIndex = async function () {
           level:    level,
           category: _inferCategory(traits),
           traits:   traits,
+          source:   source,
         });
       }
     } catch (err) {
@@ -172,9 +185,13 @@ function _buildBiographyHTML(profile) {
  *
  * @param {object} profile    NPC profile from generateBasicNPC / applyAIEnhancement
  * @param {object} archetype  entry from _archetypeIndex: { packId, actorId, name }
+ * @param {Array}  [inventory=[]]  Item index entries to embed in the actor after creation
  * @returns {Promise<Actor>}
  */
-GMTOOLKIT.createNPCActorFromArchetype = async function (profile, archetype) {
+GMTOOLKIT.createNPCActorFromArchetype = async function (profile, archetype, inventory) {
+  /* Default inventory to empty array so callers don't need to pass it. */
+  var inv = Array.isArray(inventory) ? inventory : [];
+
   var pack = game.packs.get(archetype.packId);
   if (!pack) throw new Error("Compendium not found: " + archetype.packId);
 
@@ -206,7 +223,25 @@ GMTOOLKIT.createNPCActorFromArchetype = async function (profile, archetype) {
 
   /* renderSheet: false — the caller (npc-app.js _onCreateActor) opens the sheet
      explicitly after creation so the GM sees it without a double-render flash. */
-  return Actor.create(data, { renderSheet: false });
+  var actor = await Actor.create(data, { renderSheet: false });
+
+  /* Embed inventory items from the compendium if any were provided. */
+  if (actor && inv.length > 0) {
+    var itemDocs = await Promise.all(
+      inv.map(async function (entry) {
+        var itemPack = game.packs.get(entry.packId);
+        var item = await itemPack?.getDocument(entry._id);
+        return item ? item.toObject() : null;
+      })
+    );
+    /* Filter out any entries where the compendium lookup failed. */
+    var validItems = itemDocs.filter(function (d) { return d !== null && d !== undefined; });
+    if (validItems.length > 0) {
+      await actor.createEmbeddedDocuments("Item", validItems);
+    }
+  }
+
+  return actor;
 };
 
 /**
@@ -218,11 +253,15 @@ GMTOOLKIT.createNPCActorFromArchetype = async function (profile, archetype) {
  *
  * This is intentionally thin — a thin actor is better than a broken one.
  *
- * @param {object} profile  NPC profile from generateBasicNPC / applyAIEnhancement
+ * @param {object} profile    NPC profile from generateBasicNPC / applyAIEnhancement
+ * @param {Array}  [inventory=[]]  Item index entries to embed in the actor after creation
  * @returns {Promise<Actor>}
  */
-GMTOOLKIT.createBasicNPCActorNoArchetype = async function (profile) {
-  return Actor.create({
+GMTOOLKIT.createBasicNPCActorNoArchetype = async function (profile, inventory) {
+  /* Default inventory to empty array so callers don't need to pass it. */
+  var inv = Array.isArray(inventory) ? inventory : [];
+
+  var actor = await Actor.create({
     name: profile.name,
     type: "npc",
     system: {
@@ -232,4 +271,22 @@ GMTOOLKIT.createBasicNPCActorNoArchetype = async function (profile) {
       },
     },
   }, { renderSheet: false });
+
+  /* Embed inventory items from the compendium if any were provided. */
+  if (actor && inv.length > 0) {
+    var itemDocs = await Promise.all(
+      inv.map(async function (entry) {
+        var itemPack = game.packs.get(entry.packId);
+        var item = await itemPack?.getDocument(entry._id);
+        return item ? item.toObject() : null;
+      })
+    );
+    /* Filter out any entries where the compendium lookup failed. */
+    var validItems = itemDocs.filter(function (d) { return d !== null && d !== undefined; });
+    if (validItems.length > 0) {
+      await actor.createEmbeddedDocuments("Item", validItems);
+    }
+  }
+
+  return actor;
 };

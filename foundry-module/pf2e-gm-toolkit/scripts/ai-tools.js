@@ -19,9 +19,7 @@
  *   callLLM(prompt)
  *   enhanceNPCWithAI(name, race, sex)        — existing signature preserved
  *   enhanceEncounterWithAI(terrain, templateName, monsters) — same
- *   getGeminiKey()                           — deprecated shim; kept for
- *                                              backwards compat with apps that
- *                                              have not yet migrated to isAIEnabled()
+ *   getGeminiKey()                           — deprecated shim (Phase 5 removal)
  */
 
 /* ------------------------------------------------------------------ */
@@ -76,14 +74,9 @@ GMTOOLKIT.isAIEnabled = function () {
 };
 
 /**
- * Deprecated — kept so that encounter-app.js and npc-app.js can continue to
- * call GMTOOLKIT.getGeminiKey() until they are updated to use isAIEnabled().
- *
- * Returns the stored API key when the selected provider is "gemini", otherwise
- * returns null.  Code that only checked for a truthy return value to decide
- * whether AI is enabled will still work correctly for the gemini provider.
- *
- * @deprecated Use GMTOOLKIT.getLLMConfig() or GMTOOLKIT.isAIEnabled() instead.
+ * @deprecated All callers have been migrated to isAIEnabled(). This shim is
+ * kept only so any third-party code that may reference it doesn't hard-crash.
+ * Will be removed in Phase 5 cleanup.
  * @returns {string|null}
  */
 GMTOOLKIT.getGeminiKey = function () {
@@ -157,20 +150,29 @@ function _cleanJsonResponse(text) {
  * @throws {Error}             On HTTP error or JSON parse failure
  */
 async function _callOpenAIFormat(prompt, url, apiKey, model) {
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      /* json_object mode signals the model to return valid JSON.
-       * Not all openai-compatible servers honour this, but it never hurts. */
-      response_format: { type: "json_object" },
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        /* json_object mode signals the model to return valid JSON.
+         * Not all openai-compatible servers honour this, but it never hurts. */
+        response_format: { type: "json_object" },
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!resp.ok) {
     /* Pull the error body for a more useful log message. */
@@ -181,8 +183,8 @@ async function _callOpenAIFormat(prompt, url, apiKey, model) {
   const data = await resp.json();
 
   /* Standard OpenAI response shape — content lives here. */
-  const text = data?.choices?.[0]?.message?.content ?? "";
-  return JSON.parse(_cleanJsonResponse(text));
+  const raw = data?.choices?.[0]?.message?.content ?? "";
+  return JSON.parse(_cleanJsonResponse(raw));
 }
 
 /**
@@ -197,19 +199,33 @@ async function _callOpenAIFormat(prompt, url, apiKey, model) {
  * @throws {Error}
  */
 async function _callGemini(prompt, apiKey, model) {
-  /* API key is passed as a query parameter for the Gemini REST API. */
+  /* API key is passed as a query parameter — Gemini REST API does not support
+   * Bearer token auth for direct client-side calls; the key in the URL is the
+   * documented approach for the generateContent endpoint. */
   const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.8, maxOutputTokens: 1024 },
+    /* 2048 tokens gives the encounter prompt (5 multi-sentence fields) room to
+       complete without truncation.  1024 was too small and caused JSON parse
+       failures on longer responses ("Unterminated string" errors). */
+    generationConfig: { temperature: 0.8, maxOutputTokens: 4096, responseMimeType: "application/json" },
   };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const err = await response.text().catch(() => "(no body)");
@@ -277,7 +293,11 @@ GMTOOLKIT.callLLM = async function (prompt) {
         return null;
     }
   } catch (err) {
-    console.warn("PF2e GM Toolkit | LLM call failed:", err.message);
+    if (err.name === "AbortError") {
+      console.warn("PF2e GM Toolkit | LLM call timed out after 30 seconds.");
+    } else {
+      console.warn("PF2e GM Toolkit | LLM call failed:", err.message);
+    }
     return null;
   }
 };
@@ -385,3 +405,100 @@ Make it atmospheric and specific to the terrain and creatures. Avoid generic des
   }
   return result;
 };
+
+/* ------------------------------------------------------------------ */
+/* Model discovery — used by the settings UI model picker              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fetch the list of text-generation models available from the configured
+ * provider.  Returns an array of { id } objects sorted alphabetically.
+ * Throws on HTTP error so the caller (settings-ui.js) can surface the
+ * failure to the user rather than silently doing nothing.
+ *
+ * @param {string} provider  "gemini" | "openai" | "mistral" | "openai-compatible"
+ * @param {string} apiKey
+ * @param {string} baseUrl   Required only for "openai-compatible"
+ * @returns {Promise<Array<{id: string}>>}
+ */
+GMTOOLKIT.fetchAvailableModels = async function (provider, apiKey, baseUrl) {
+  switch (provider) {
+    case "gemini":
+      return await _fetchGeminiModels(apiKey);
+    case "openai":
+      return await _fetchOpenAIStyleModels("https://api.openai.com", apiKey, "openai");
+    case "mistral":
+      return await _fetchOpenAIStyleModels("https://api.mistral.ai", apiKey, "mistral");
+    case "openai-compatible": {
+      if (!baseUrl) throw new Error("Custom Endpoint URL is required for openai-compatible provider.");
+      return await _fetchOpenAIStyleModels(baseUrl.replace(/\/$/, ""), apiKey, "generic");
+    }
+    default:
+      return [];
+  }
+};
+
+/**
+ * Fetch Gemini models that support text generation.
+ * @param {string} apiKey
+ * @returns {Promise<Array<{id: string}>>}
+ */
+async function _fetchGeminiModels(apiKey) {
+  /* GEMINI_API_BASE ends with "/models" — strip it to get the base, then re-append
+     the models list path.  The list endpoint is the same path without a model name. */
+  const url = `${GEMINI_API_BASE}?key=${encodeURIComponent(apiKey)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    const err = await resp.text().catch(() => "");
+    throw new Error(`Gemini API error ${resp.status}: ${err}`);
+  }
+  const data = await resp.json();
+  return (data.models || [])
+    /* Only models that support generateContent are useful here. */
+    .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+    /* Strip the "models/" prefix Gemini uses in its name field. */
+    .map((m) => ({ id: m.name.replace(/^models\//, "") }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
+ * Fetch models from any OpenAI-format /v1/models endpoint and filter to
+ * text-generation models only.
+ *
+ * @param {string} baseUrl   e.g. "https://api.openai.com"
+ * @param {string} apiKey
+ * @param {"openai"|"mistral"|"generic"} hint  Controls filtering strictness
+ * @returns {Promise<Array<{id: string}>>}
+ */
+async function _fetchOpenAIStyleModels(baseUrl, apiKey, hint) {
+  const resp = await fetch(`${baseUrl}/v1/models`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!resp.ok) {
+    const err = await resp.text().catch(() => "");
+    throw new Error(`API error ${resp.status}: ${err}`);
+  }
+  const data = await resp.json();
+  const all = data.data || [];
+
+  let filtered;
+  if (hint === "openai") {
+    /* OpenAI returns embeddings, audio, image, and legacy models — keep only
+       GPT chat and O-series reasoning models. */
+    filtered = all.filter((m) => {
+      const id = m.id.toLowerCase();
+      return (id.startsWith("gpt-") || /^o[0-9]/.test(id)) &&
+             !id.includes("realtime") && !id.includes("audio");
+    });
+  } else if (hint === "mistral") {
+    /* Mistral's list is small; only exclude embedding models. */
+    filtered = all.filter((m) => !m.id.toLowerCase().includes("embed"));
+  } else {
+    /* Generic openai-compatible (Ollama, Groq, LM Studio, etc.) — show everything. */
+    filtered = all;
+  }
+
+  return filtered
+    .map((m) => ({ id: m.id }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}

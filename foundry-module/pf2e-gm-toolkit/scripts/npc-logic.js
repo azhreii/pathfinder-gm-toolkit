@@ -26,9 +26,11 @@ GMTOOLKIT.getRaceDisplayName = function (raceKey, raceData) {
 
 /**
  * Generate a basic NPC (no AI). Returns a plain object with the NPC fields.
- * @param {object} namesData  contents of npc_names.json
+ * @param {object} namesData        contents of npc_names.json
+ * @param {string[]|null} [occupationPool]  optional filtered list of occupations;
+ *                                          pass null/undefined to use the full list
  */
-GMTOOLKIT.generateBasicNPC = function (namesData) {
+GMTOOLKIT.generateBasicNPC = function (namesData, occupationPool) {
   const races = Object.keys(namesData);
   if (races.length === 0) return null;
 
@@ -40,11 +42,17 @@ GMTOOLKIT.generateBasicNPC = function (namesData) {
   const surname = _npcRandom(raceData.surnames);
   const race = GMTOOLKIT.getRaceDisplayName(raceKey, raceData);
 
+  /* Use the provided occupation pool, or fall back to the full list.
+     Guard against an empty pool so generation never returns null. */
+  const pool = (occupationPool && occupationPool.length > 0)
+    ? occupationPool
+    : GMTOOLKIT.OCCUPATIONS;
+
   return {
     name: `${firstName} ${surname}`,
     race,
     sex: sex.charAt(0).toUpperCase() + sex.slice(1),
-    occupation: _npcRandom(GMTOOLKIT.OCCUPATIONS),
+    occupation: _npcRandom(pool),
     personality: _npcRandom(GMTOOLKIT.PERSONALITY_TRAITS),
     /* These fields are null for basic NPCs; AI fills them. */
     appearance: null,

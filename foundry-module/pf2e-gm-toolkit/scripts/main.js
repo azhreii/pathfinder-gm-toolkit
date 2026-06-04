@@ -1,9 +1,11 @@
 /**
  * Module entry point.
- * Registers settings, loads data, and adds toolbar buttons.
+ * Registers settings, loads data, and adds the dedicated sidebar tab.
  */
 
 Hooks.once("init", () => {
+  GMToolkitSidebarTab.register();
+
   /*
    * AI / LLM provider settings — world-scoped and GM-only.
    *
@@ -67,6 +69,14 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", async () => {
+  /* Canonical terrain state — sidebar owns this; all tools read from it.
+     Attempt to detect terrain from the active scene; fall back to "any". */
+  GMTOOLKIT._currentTerrain = GMTOOLKIT.detectSceneTerrain?.() ?? "any";
+
+  /* Session history — in-memory only, cleared each Foundry session.
+     Populated by encounter-app.js and npc-app.js after successful generation. */
+  GMTOOLKIT._sessionHistory = [];
+
   /*
    * Two-phase load:
    * 1. Fetch the small bundled JSON files (terrain rules, NPC names) — fast.
@@ -80,6 +90,7 @@ Hooks.once("ready", async () => {
     const monsterIndex = await GMTOOLKIT.buildMonsterIndex();
 
     GMTOOLKIT._moduleData = { monsterIndex, terrainMapping, npcNames };
+    GMToolkitSidebarTab.refresh();
     console.log(
       `PF2e GM Toolkit | Ready — ${monsterIndex.length} monsters indexed from ${game.packs.size} packs`
     );
@@ -88,10 +99,34 @@ Hooks.once("ready", async () => {
      * Non-critical: if this fails the picker shows "no archetypes found" gracefully. */
     GMTOOLKIT.buildArchetypeIndex().then((index) => {
       GMTOOLKIT._archetypeIndex = index;
+      GMToolkitSidebarTab.refresh();
       console.log(`PF2e GM Toolkit | ${index.length} NPC archetypes indexed`);
     }).catch((err) => {
       console.warn("PF2e GM Toolkit | Archetype index failed:", err);
       GMTOOLKIT._archetypeIndex = [];
+      GMToolkitSidebarTab.refresh();
+    });
+
+    /* Build item index in the background — used by the shop generator.
+     * Non-critical: if this fails the shop will show no inventory gracefully. */
+    GMTOOLKIT.buildItemIndex().then((index) => {
+      GMTOOLKIT._itemIndex = index;
+      console.log(`PF2e GM Toolkit | ${index.length} items indexed`);
+    }).catch((err) => {
+      console.warn("PF2e GM Toolkit | Item index failed:", err);
+      GMTOOLKIT._itemIndex = [];
+    });
+
+    /* Build hazard index in the background — used by the sidebar hazard panel.
+     * Non-critical: if this fails the hazard panel shows empty gracefully.
+     * Calls refresh() so the sidebar can update once hazards are available. */
+    GMTOOLKIT.buildHazardIndex().then((index) => {
+      GMTOOLKIT._hazardIndex = index;
+      GMToolkitSidebarTab.refresh();
+      console.log(`PF2e GM Toolkit | ${index.length} hazards indexed`);
+    }).catch((err) => {
+      console.warn("PF2e GM Toolkit | Hazard index failed:", err);
+      GMTOOLKIT._hazardIndex = [];
     });
   } catch (err) {
     console.error("PF2e GM Toolkit | Failed to load module data:", err);
@@ -99,43 +134,3 @@ Hooks.once("ready", async () => {
   }
 });
 
-/**
- * Add GM Toolkit buttons to the Journal sidebar header.
- * Using renderJournalDirectory is reliable across v12/v13 and avoids
- * canvas-layer requirements that scene controls impose on custom groups.
- */
-Hooks.on("renderJournalDirectory", (app, [html]) => {
-  if (!game.user.isGM) return;
-
-  /* Avoid adding duplicate buttons on re-render. */
-  if (html.querySelector(".gmt-sidebar-btn")) return;
-
-  const header = html.querySelector(".directory-header") ?? html.querySelector("header");
-  if (!header) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.classList.add("gmt-sidebar-buttons");
-  wrapper.innerHTML = `
-    <button class="gmt-sidebar-btn" title="Encounter Builder" data-gmt="encounter">
-      <i class="fas fa-swords"></i> Encounters
-    </button>
-    <button class="gmt-sidebar-btn" title="NPC Generator" data-gmt="npc">
-      <i class="fas fa-user-secret"></i> NPCs
-    </button>
-  `;
-
-  header.after(wrapper);
-
-  wrapper.querySelector("[data-gmt='encounter']").addEventListener("click", () => {
-    /* Bring to front if already open, otherwise open fresh. */
-    const existing = foundry.applications.instances.get("pf2e-gm-toolkit-encounter");
-    if (existing) existing.bringToFront();
-    else new EncounterBuilderApp().render(true);
-  });
-
-  wrapper.querySelector("[data-gmt='npc']").addEventListener("click", () => {
-    const existing = foundry.applications.instances.get("pf2e-gm-toolkit-npc");
-    if (existing) existing.bringToFront();
-    else new NPCGeneratorApp().render(true);
-  });
-});
